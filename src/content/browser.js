@@ -268,6 +268,13 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
 
         var style = this.getStyleForBrowser(browser);
         var label = $('nosquint-status-tooltip-textcolor');
+        if (style.colorBackground || style.colorText) {
+            label.style.padding = '2px 10px';
+            label.style.border = '1px solid black';
+        } else {
+            label.style.padding = 'inherit';
+            label.style.border = 'inherit';
+        }
         label.style.color = style.colorText || 'inherit';
         label.style.backgroundColor = style.colorBackground || 'inherit';
         label.value = (style.colorText || style.colorBackground) ? 'Sample' : 'Site Controlled';

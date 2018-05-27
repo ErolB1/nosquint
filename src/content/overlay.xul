@@ -90,8 +90,7 @@
                             <label value="&ns.tooltip.textColor.label;:" style="font-weight: bold" />
                         </hbox>
                         <hbox>
-                            <label id="nosquint-status-tooltip-textcolor" 
-                                   style='padding: 2px 10px; border: 1px solid black' />
+                            <label id="nosquint-status-tooltip-textcolor" />
                         </hbox>
                     </row>
 
