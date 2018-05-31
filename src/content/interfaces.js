@@ -121,7 +121,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                          // XXX 2013-13-31: with Firefox 20 this doesn't seem to be
                          // needed anymore.
                         var b = this.browser;
-                        setTimeout(function() NSQ.browser.zoom(b), 100);
+                        setTimeout(() => NSQ.browser.zoom(b), 100);
                     } else
                         NSQ.browser.zoom(this.browser);
                 }
@@ -174,13 +174,11 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
 
         },
 
-        onProgressChange: function() 0,
-        onStatusChange: function() 0,
-        onSecurityChange: function() 0,
-        onLinkIconAvailable: function() 0,
+        onProgressChange: () => 0,
+        onStatusChange: () => 0,
+        onSecurityChange: () => 0,
+        onLinkIconAvailable: () => 0,
     };
-
-
 
     /* Custom observer attached to nsIObserverService.  Used to detect new windows
      * (to save pending site settings) and addon disable/uninstall.

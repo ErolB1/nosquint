@@ -142,7 +142,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             return this.window[func].apply(this.window, args);
         } catch (e) {
             // Presumably NS_ERROR_NOT_INITIALIZED.  TODO: verify.
-            this.window = foreachNSQ(function() false);
+            this.window = foreachNSQ(() => false);
             return this.window[func].apply(this.window, args);
         }
     };
@@ -194,12 +194,12 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
 
             case 'fullZoomLevel':
                 this.fullZoomLevel = branchNS.getIntPref('fullZoomLevel');
-                foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueZoomAll() : null);
+                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueZoomAll() : null);
                 break;
 
             case 'textZoomLevel':
                 this.textZoomLevel = branchNS.getIntPref('textZoomLevel');
-                foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueZoomAll() : null);
+                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueZoomAll() : null);
                 break;
 
             case 'wheelZoomEnabled':
@@ -300,32 +300,32 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
 
             case 'colorText':
                 this.colorText = branchNS.getCharPref('colorText');
-                foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'colorBackground':
                 this.colorBackground = branchNS.getCharPref('colorBackground');
-                foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'colorBackgroundImages':
                 this.colorBackgroundImages = branchNS.getBoolPref('colorBackgroundImages');
-                foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'linksUnvisited':
                 this.linksUnvisited = branchNS.getCharPref('linksUnvisited');
-                foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'linksVisited':
                 this.linksVisited = branchNS.getCharPref('linksVisited');
-                foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'linksUnderline':
                 this.linksUnderline = branchNS.getBoolPref('linksUnderline');
-                foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
         }
     };
@@ -458,7 +458,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
         }
         // Sort the exceptions such that the ones with the highest weights
         // (that is, the longest literal lengths) appear first.
-        exceptions.sort(function(a, b) b[1] - a[1]);
+        exceptions.sort((a, b) => b[1] - a[1]);
         return exceptions;
     };
 
@@ -520,7 +520,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             record[0] = text == text_default ? 0 : text;
             record[3] = full == full_default ? 0 : full;
             // Update all other tabs for this site.
-            foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueZoomAll(site, 1000) : null);
+            foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueZoomAll(site, 1000) : null);
         }
         if (style) {
             record[4] = style.colorText || '0';
@@ -530,7 +530,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             record[8] = style.linksVisited || '0';
             record[9] = style.linksUnderline || '0';
             // Update all other tabs for this site.
-            foreachNSQ(function(NSQ) NSQ.browser ? NSQ.browser.queueStyleAll(site, 1000) : null);
+            foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll(site, 1000) : null);
         }
 
         // Check newly updated record against defaults.  If all values are default, we
@@ -580,7 +580,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
          * needlessly iterating over the sites array.
          */
         debug("queueSaveSiteList(): delay=" + this.saveDelay);
-        saveTimer = this.winFunc('setTimeout', function() NSQ.prefs.saveSiteList(flush), this.saveDelay);
+        saveTimer = this.winFunc('setTimeout', () => NSQ.prefs.saveSiteList(flush), this.saveDelay);
     };
 
     /* Store the sites list right now.  If flush is true, the prefs file is
@@ -764,7 +764,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
     this.applyStyleGlobals = function(style) {
         var newstyle = { enabled: false };
         var boolDefaults = {colorBackgroundImages: false, linksUnderline: false};
-        var isDefault = function(o, attr) !o || !o[attr] || o[attr] in ['0', false];
+        var isDefault = (o, attr) => !o || !o[attr] || o[attr] in ['0', false];
         for (let [key, value] in items(this.defaultColors, boolDefaults)) {
             newstyle[key] = isDefault(style, key) ? (isDefault(this, key) ? null : this[key]) : style[key];
             newstyle.enabled = newstyle.enabled || Boolean(newstyle[key]);
@@ -897,7 +897,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             /* Because this.checkVersionChange() is called during init of NSQ.browser,
              * and Application.extensions.get() is synchronous, defer this call.
              */
-            defer(0, function() callback(Application.extensions.get('nosquint@urandom.ca')));
+            defer(0, () => callback(Application.extensions.get('nosquint@urandom.ca')));
         } else {
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
             AddonManager.getAddonByID('nosquint@urandom.ca', callback);

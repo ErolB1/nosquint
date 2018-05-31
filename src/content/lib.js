@@ -23,22 +23,22 @@
 
     this.is30 = (function() {
         let is30 = Application.version.substr(0, 4) == '3.0.';
-        return function() is30;
+        return () => is30;
     })();
 
     this.is36 = (function() {
         let is36 = Application.version.substr(0, 4) == '3.6.';
-        return function() is36;
+        return () => is36;
     })();
 
     this.is3x = (function() {
         let is3x = parseInt(Application.version.split('.')[0]) < 4;
-        return function() is3x;
+        return () => is3x;
     })();
 
     this.is40 = (function() {
         let is40 = parseInt(Application.version.split('.')[0]) >= 4;
-        return function() is40;
+        return () => is40;
     })();
 
     this.$ = function(id, doc) {
@@ -105,7 +105,7 @@
             // First window opened, so parse from stored list, which is
             // borrowed from http://george.surbl.org/two-level-tlds
             this.storage.TLDs = {};
-            for each (let line in this.readLines('chrome://nosquint/content/two-level-tlds'))
+            for (let line of this.readLines('chrome://nosquint/content/two-level-tlds'))
                 this.storage.TLDs[line] = true;
         }
         if (host.match(/^[\d.]+$/) != null)

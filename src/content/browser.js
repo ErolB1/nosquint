@@ -348,7 +348,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      */
     this.queueUpdateStatus = function() {
         if (!updateStatusTimer)
-            updateStatusTimer = setTimeout(function() NSQ.browser.updateStatus(), 1);
+            updateStatusTimer = setTimeout(() => NSQ.browser.updateStatus(), 1);
     };
 
     /* Given a browser, returns the site name.  Does not use the cached
@@ -489,7 +489,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         if (delay === undefined)
             delay = 1;
         if (!zoomAllTimer)
-            zoomAllTimer = setTimeout(function() NSQ.browser.zoomAll(site), delay);
+            zoomAllTimer = setTimeout(() => NSQ.browser.zoomAll(site), delay);
     };
 
 
@@ -618,6 +618,6 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         if (delay === undefined)
             delay = 1;
         if (!styleAllTimer)
-            styleAllTimer = setTimeout(function() NSQ.browser.styleAll(site), delay);
+            styleAllTimer = setTimeout(() => NSQ.browser.styleAll(site), delay);
     };
 }});

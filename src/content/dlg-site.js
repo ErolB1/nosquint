@@ -9,10 +9,10 @@ NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
 
         this.setBrowser(window.arguments[0], window.arguments[1]);
 
-        $('full-zoom-level').onchange = function() NSQ.dialogs.site.valueChange(this);
-        $('text-zoom-level').onchange = function() NSQ.dialogs.site.valueChange(this);
+        $('full-zoom-level').onchange = () => NSQ.dialogs.site.valueChange(this);
+        $('text-zoom-level').onchange = () => NSQ.dialogs.site.valueChange(this);
 
-        var restyle = function() NSQ.dialogs.site.style(true, false);
+        var restyle = () => NSQ.dialogs.site.style(true, false);
         for (let id in NSQ.browser.prefs.defaultColors) {
             $(id).addEventListener('CheckboxStateChange', this.colorChecked, false);
             $(id).parentNode.childNodes[1].onchange = restyle;
