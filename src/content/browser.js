@@ -402,8 +402,8 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.attach = function(browser) {
-        var listener = new NSQ.interfaces.ProgressListener(browser);
-        browser.addProgressListener(listener);
+        var listener = new NSQ.interfaces.TabsProgressListener();
+        browser.addTabsProgressListener(listener);
         debug('attach(): attached browser URI=' + browser.docShell.document.URL);
 
         var userData = {
@@ -425,7 +425,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      */
     this.detach = function(browser) {
         var userData = browser.getUserData('nosquint');
-        browser.removeProgressListener(userData.listener);
+        browser.removeTabsProgressListener(userData.listener);
         browser.removeEventListener('DOMFrameContentLoaded', userData.handleDOMFrameContentLoaded, true);
         browser.setUserData('nosquint', null, null);
     };
