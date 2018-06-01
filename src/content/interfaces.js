@@ -21,37 +21,28 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
      * TODO: when support for Firefox 3.0 is dropped, use:
      *          https://developer.mozilla.org/En/Listening_to_events_on_all_tabs
      */
-    this.ProgressListener = function(browser) {
+    this.TabsProgressListener = function() {
         this.id = 'NoSquint.interfaces.ProgressListener';
-        this.browser = browser;
         this.contentType = null;
         this.attachTimeout = null;
     }
 
-    this.ProgressListener.prototype = {
-        QueryInterface: function(aIID) {
-            if (aIID.equals(CI.nsIWebProgressListener) ||
-                aIID.equals(CI.nsISupportsWeakReference) ||
-                aIID.equals(CI.nsISupports))
-                return this;
-            throw Components.results.NS_NOINTERFACE;
-        },
-
-        onLocationChange: function(progress, request, uri) {
+    this.TabsProgressListener.prototype = {
+        onLocationChange: function(browser, progress, request, uri) {
             // Ignore url#foo -> url#bar location changes
             if (!request)
                 return;
 
             // If we're here, a new document will be loaded next.
-            this.contentType = this.browser.docShell.document.contentType;
+            this.contentType = browser.docShell.document.contentType;
             this.styleApplied = false;
             this.zoomApplied = false;
 
             // Remove any stylers from the last document.
-            var userData = this.browser.getUserData('nosquint');
+            var userData = browser.getUserData('nosquint');
             userData.stylers = [];
 
-            var site = NSQ.browser.getSiteFromBrowser(this.browser);
+            var site = NSQ.browser.getSiteFromBrowser(browser);
             if (site == userData.site)
                 // New document on the same site.
                 return;
@@ -76,15 +67,15 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
              * https://support.mozilla.com/en-US/forum/1/563849
              * https://bugzilla.mozilla.org/show_bug.cgi?id=526828
              */
-            NSQ.browser.zoom(this.browser);
+            NSQ.browser.zoom(browser);
 
             // If the site settings dialog was open from this browser, sync it.
             var dlg = NSQ.storage.dialogs.site;
-            if (dlg && dlg.browser == this.browser)
-                dlg.setBrowser(NSQ.browser, this.browser);
+            if (dlg && dlg.browser == browser)
+                dlg.setBrowser(NSQ.browser, browser);
         },
 
-        onStateChange: function(progress, request, state, astatus) {
+        onStateChange: function(browser, progress, request, state, astatus) {
             //debug("LISTENER: request=" + request + ", state=" + state + ", status=" +
             //      astatus + ", type=" + this.browser.docShell.document.contentType);
 
@@ -92,20 +83,20 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
              * This changes in the case when there's an error page (e.g. dns failure),
              * which we treat as chrome and do not adjust.
              */
-            var contentType = this.browser.docShell.document.contentType;
+            var contentType = browser.docShell.document.contentType;
             if (this.contentType != contentType) {
                 this.contentType = contentType;
-                var userData = this.browser.getUserData('nosquint');
-                if (isChrome(this.browser)) {
+                var userData = browser.getUserData('nosquint');
+                if (isChrome(browser)) {
                     // Content type is changed and it's now chrome.  Unzoom (or
                     // zoom to 100%)
                     userData.site = null;
-                    NSQ.browser.zoom(this.browser, 100, 100);
+                    NSQ.browser.zoom(browser, 100, 100);
                 } else if (userData.site === null) {
                     // Was considered chrome, but now isn't.  Rezoom/style.
                     delete userData.site;
-                    NSQ.browser.zoom(this.browser);
-                    this.styleApplied = NSQ.browser.style(this.browser);
+                    NSQ.browser.zoom(browser);
+                    this.styleApplied = NSQ.browser.style(browser);
                 }
             } else if (state & stateFlag) {
                 if (!this.zoomApplied) {
@@ -120,63 +111,24 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                          */
                          // XXX 2013-13-31: with Firefox 20 this doesn't seem to be
                          // needed anymore.
-                        var b = this.browser;
+                        var b = browser;
                         setTimeout(() => NSQ.browser.zoom(b), 100);
                     } else
-                        NSQ.browser.zoom(this.browser);
+                        NSQ.browser.zoom(browser);
                 }
                 if (!this.styleApplied) {
-                    if (!isChrome(this.browser) || isImage(this.browser))
-                        this.styleApplied = NSQ.browser.style(this.browser);
+                    if (!isChrome(gBrowser) || isImage(browser))
+                        this.styleApplied = NSQ.browser.style(browser);
                     else
                         this.styleApplied = true;
                 }
-            } else if (state & Components.interfaces.nsIWebProgressListener.STATE_STOP && astatus &&
-                       this.attachTimeout == null) {
-                /* Kludge: when moving a tab from one window to another, the
-                 * listener previously created and attached in
-                 * NSQ.browser.attach() seems to either stop working or gets
-                 * implicitly detached somewhere afterward.  The tab gets
-                 * created initially as about:blank, so NoSquint thinks it's
-                 * chrome.  The tab gets updated for the proper site, but since
-                 * the listener isn't working, NoSquint doesn't hear about it.
-                 *
-                 * The specific magical incantation to deal with this seems to
-                 * be handling STATE_STOP with a non-zero aStatus.  After a 0ms
-                 * timer, we try to re-add this listener ('this').  If it
-                 * fails, we assume the listener from attach() is still there
-                 * and everything is cool after all.  Otherwise, regenerate the
-                 * site name and rezooms/style.
-                 *
-                 * This seems to solve the problem, but feels like a nasty volatile
-                 * hack to work around what is probably a firefox bug, and will
-                 * likely break in the future.  It doesn't seem to be necessary
-                 * with 3.0, but is with 3.5+.
-                 */
-                var browser = this.browser;
-                var listener = this;
-                this.attachTimeout = setTimeout(function() {
-                    listener.attachTimeout = null;
-                    try {
-                        browser.addProgressListener(listener);
-                    } catch (err) {
-                        // Assume ProgressListener was already attached after all, so
-                        // we don't need to do anything.
-                        return;
-                    }
-                    browser.getUserData('nosquint').listener = listener;
-                    // Forces getZoomForBrowser() (via zoom()) to redetermine site name.
-                    delete browser.getUserData('nosquint').site;
-                    NSQ.browser.zoom(browser);
-                    NSQ.browser.style(browser);
-                }, 0);
             }
-
         },
 
         onProgressChange: () => 0,
         onStatusChange: () => 0,
         onSecurityChange: () => 0,
+        onRefreshAttempted: () => 0,
         onLinkIconAvailable: () => 0,
     };
 
