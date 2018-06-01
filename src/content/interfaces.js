@@ -67,7 +67,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
              * https://support.mozilla.com/en-US/forum/1/563849
              * https://bugzilla.mozilla.org/show_bug.cgi?id=526828
              */
-            NSQ.browser.zoom(this.browser);
+            NSQ.browser.zoom(browser);
 
             // If the site settings dialog was open from this browser, sync it.
             var dlg = NSQ.storage.dialogs.site;
@@ -122,47 +122,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                     else
                         this.styleApplied = true;
                 }
-            } else if (state & Components.interfaces.nsIWebProgressListener.STATE_STOP && astatus &&
-                       this.attachTimeout == null) {
-                /* Kludge: when moving a tab from one window to another, the
-                 * listener previously created and attached in
-                 * NSQ.browser.attach() seems to either stop working or gets
-                 * implicitly detached somewhere afterward.  The tab gets
-                 * created initially as about:blank, so NoSquint thinks it's
-                 * chrome.  The tab gets updated for the proper site, but since
-                 * the listener isn't working, NoSquint doesn't hear about it.
-                 *
-                 * The specific magical incantation to deal with this seems to
-                 * be handling STATE_STOP with a non-zero aStatus.  After a 0ms
-                 * timer, we try to re-add this listener ('this').  If it
-                 * fails, we assume the listener from attach() is still there
-                 * and everything is cool after all.  Otherwise, regenerate the
-                 * site name and rezooms/style.
-                 *
-                 * This seems to solve the problem, but feels like a nasty volatile
-                 * hack to work around what is probably a firefox bug, and will
-                 * likely break in the future.  It doesn't seem to be necessary
-                 * with 3.0, but is with 3.5+.
-                 */
-                var b = browser;
-                var listener = this;
-                this.attachTimeout = setTimeout(function() {
-                    listener.attachTimeout = null;
-                    try {
-                        b.addTabsProgressListener(listener);
-                    } catch (err) {
-                        // Assume ProgressListener was already attached after all, so
-                        // we don't need to do anything.
-                        return;
-                    }
-                    b.getUserData('nosquint').listener = listener;
-                    // Forces getZoomForBrowser() (via zoom()) to redetermine site name.
-                    delete b.getUserData('nosquint').site;
-                    NSQ.browser.zoom(b);
-                    NSQ.browser.style(b);
-                }, 0);
             }
-
         },
 
         onProgressChange: () => 0,
