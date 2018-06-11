@@ -35,6 +35,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         this.styleAll(null);
 
         this.hookZoomButtonsForReset();
+        this.hookEventListeners();
         NoSquint.prefs.checkVersionChange();
     };
 
@@ -75,6 +76,15 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             */
         }
     };
+
+    this.hookEventListeners = function() {
+        if ($('nosquint-status')) {
+            // Add a scroll event listener to zoom on scroll
+            $('nosquint-status').addEventListener('DOMMouseScroll', function(event) {
+                NSQ.cmd.statusPanelScroll(event);
+            }, false);
+        }
+    }
 
     /* Turns on the Addon Bar (Firefox 4)
      */

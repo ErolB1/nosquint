@@ -128,6 +128,19 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
             NSQ.cmd.openGlobalSettings();
     }
 
+    /* Handle wheel scroll on the status panel. */
+    this.statusPanelScroll = function(event) {
+        /* Check if the scroll value was positive or negative.
+         * A positive number indicates “down” / “right”; negative “up” / “left”.
+         * Thus, scrolling up will zoom in, and scrolling down will zoom out.
+         */
+        if (event.detail < 0) {
+            this.enlargePrimary();
+        } else {
+            this.reducePrimary();
+        }
+    }
+
     this.statusPanelPrepareMenu = function(event) {
         if (event.button != 2)
             // Not a right click.
