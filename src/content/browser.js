@@ -603,7 +603,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             try {
                 stylers[i](style);
             } catch (e) {
-                debug("Failed to apply style: " + e);
+                console.warn("Failed to apply style: " + e);
                 stylers.splice(i, 1);
             }
         }

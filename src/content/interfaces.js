@@ -117,7 +117,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                         NSQ.browser.zoom(browser);
                 }
                 if (!this.styleApplied) {
-                    if (!isChrome(gBrowser) || isImage(browser))
+                    if (!isChrome(browser) || isImage(browser))
                         this.styleApplied = NSQ.browser.style(browser);
                     else
                         this.styleApplied = true;
