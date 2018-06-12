@@ -22,7 +22,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
      *          https://developer.mozilla.org/En/Listening_to_events_on_all_tabs
      */
     this.TabsProgressListener = function() {
-        this.id = 'NoSquint.interfaces.ProgressListener';
+        this.id = 'NoSquint.interfaces.TabsProgressListener';
         this.contentType = null;
         this.attachTimeout = null;
     }
