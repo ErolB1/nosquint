@@ -3,51 +3,55 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
 
     this.id = 'NoSquint.interfaces';
 
-    /* Specifies at which state we will try to zoom and style the page.  With
-     * 3.5+, we can style early with STATE_TRANSFERRING.  With 3.0, we seem to
-     * have style later at STATE_STOP in order to get reliable results. (In 3.0
-     * using STATE_TRANSFERRING, on e.g. youtube.com the search bar is
-     * improperly rendered.  [And this, quite perplexingly, is caused by
-     * accessing doc.documentElement in NSQ.browser.style()])
+    /* Previously, this was either STATE_TRANSFERRING or STATE_STOP depending on
+     * the version of Firefox in use. These days, only using STATE_TRANSFERRING
+     * seems to be necessary.
      */
-    var stateFlag = is30() ? Components.interfaces.nsIWebProgressListener.STATE_STOP
-                           : Components.interfaces.nsIWebProgressListener.STATE_TRANSFERRING;
-    /* XXX: if we use STATE_STOP, the move-tab-between-windows kludge below stops
-     * working.
-     */
-    //var stateFlag = Components.interfaces.nsIWebProgressListener.STATE_STOP;
+    const STATE_TRANSFERRING = Components.interfaces.nsIWebProgressListener.STATE_TRANSFERRING;
 
     /* Listener used to receive notifications when a new URI is about to be loaded.
-     * TODO: when support for Firefox 3.0 is dropped, use:
+     * XXX: when support for Firefox 3.0 is dropped, use:
      *          https://developer.mozilla.org/En/Listening_to_events_on_all_tabs
+     * 
+     * XXX 06-14-2018: The above doesn't seem to work properly. We never seem to
+     * get the STATE_TRANSFERRING bit, and it causes all of the styling options
+     * to break.
      */
-    this.TabsProgressListener = function() {
-        this.id = 'NoSquint.interfaces.TabsProgressListener';
+    this.ProgressListener = function (browser) {
+        this.id = 'NoSquint.interfaces.ProgressListener';
+        this.browser= browser;
         this.contentType = null;
-        this.attachTimeout = null;
-    }
 
-    this.TabsProgressListener.prototype = {
-        onLocationChange: function(browser, progress, request, uri) {
+        this.QueryInterface = function (aIID) {
+            if (aIID.equals(CI.nsIWebProgressListener) ||
+                aIID.equals(CI.nsISupportsWeakReference) ||
+                aIID.equals(CI.nsISupports))
+                return this;
+            throw Components.results.NS_NOINTERFACE;
+        }
+    };
+
+    this.ProgressListener.prototype = {
+        onLocationChange: function(progress, request, uri) {
             // Ignore url#foo -> url#bar location changes
             if (!request)
                 return;
 
             // If we're here, a new document will be loaded next.
-            this.contentType = browser.docShell.document.contentType;
+            this.contentType = this.browser.docShell.document.contentType;
             this.styleApplied = false;
             this.zoomApplied = false;
 
             // Remove any stylers from the last document.
-            var userData = browser.getUserData('nosquint');
+            var userData = this.browser.getUserData('nosquint');
             userData.stylers = [];
 
-            var site = NSQ.browser.getSiteFromBrowser(browser);
+            var site = NSQ.browser.getSiteFromBrowser(this.browser);
             if (site == userData.site)
                 // New document on the same site.
                 return;
 
-            debug("onLocationChange(): old=" + userData.site + ", new=" + site + ", uri=" + uri.spec);
+            console.debug("onLocationChange(): old=" + userData.site + ", new=" + site + ", uri=" + uri.spec);
             /* Update timestamp for site.  This isn't _quite_ perfect because
              * the timestamp is only updated for the first page load on that site
              * rather than the last.  But it should be good enough in practice, and
@@ -67,39 +71,48 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
              * https://support.mozilla.com/en-US/forum/1/563849
              * https://bugzilla.mozilla.org/show_bug.cgi?id=526828
              */
-            NSQ.browser.zoom(browser);
+            NSQ.browser.zoom(this.browser);
 
             // If the site settings dialog was open from this browser, sync it.
             var dlg = NSQ.storage.dialogs.site;
-            if (dlg && dlg.browser == browser)
-                dlg.setBrowser(NSQ.browser, browser);
+            if (dlg && dlg.browser == this.browser)
+                dlg.setBrowser(NSQ.browser, this.browser);
         },
 
-        onStateChange: function(browser, progress, request, state, astatus) {
-            //debug("LISTENER: request=" + request + ", state=" + state + ", status=" +
-            //      astatus + ", type=" + this.browser.docShell.document.contentType);
+        onStateChange: function(progress, request, state, astatus) {
+            console.debug("LISTENER: request=" + request + ", state=" + state + ", status=" +
+                astatus + ", type=" + this.browser.docShell.document.contentType);
 
             /* Check the current content type against the content type we initially got.
              * This changes in the case when there's an error page (e.g. dns failure),
              * which we treat as chrome and do not adjust.
              */
-            var contentType = browser.docShell.document.contentType;
+            var contentType = this.browser.docShell.document.contentType;
             if (this.contentType != contentType) {
+                console.debug("onStateChange(): Content type did not match");
+
                 this.contentType = contentType;
-                var userData = browser.getUserData('nosquint');
-                if (isChrome(browser)) {
+                var userData = this.browser.getUserData('nosquint');
+
+                if (isChrome(this.browser)) {
                     // Content type is changed and it's now chrome.  Unzoom (or
                     // zoom to 100%)
+                    console.log("onStateChange(): Content type is changed and it's now chrome.");
                     userData.site = null;
-                    NSQ.browser.zoom(browser, 100, 100);
+                    NSQ.browser.zoom(this.browser, 100, 100);
                 } else if (userData.site === null) {
                     // Was considered chrome, but now isn't.  Rezoom/style.
                     delete userData.site;
-                    NSQ.browser.zoom(browser);
-                    this.styleApplied = NSQ.browser.style(browser);
+                    NSQ.browser.zoom(this.browser);
+                    console.debug("onStateChange(): Content Type was chrome, but now isn't.  Rezoom/style.");
+                    this.styleApplied = NSQ.browser.style(this.browser);
                 }
-            } else if (state & stateFlag) {
+            } else if (state & STATE_TRANSFERRING) {
+                console.debug("onStateChange(): Recieved the STATE_TRANSFERRING bit");
+
                 if (!this.zoomApplied) {
+                    console.debug("onStateChange: (Transferring) Zoom has not been applied; Zooming now.");
+
                     this.zoomApplied = true;
                     if (NSQ.browser.isPrivate) {
                         /* In private browsing mode, Firefox does not honor
@@ -111,25 +124,29 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                          */
                          // XXX 2013-13-31: with Firefox 20 this doesn't seem to be
                          // needed anymore.
-                        var b = browser;
+                        var b = this.browser;
                         setTimeout(() => NSQ.browser.zoom(b), 100);
-                    } else
-                        NSQ.browser.zoom(browser);
+                    } else {
+                        NSQ.browser.zoom(this.browser);
+                    }
                 }
+
                 if (!this.styleApplied) {
-                    if (!isChrome(browser) || isImage(browser))
-                        this.styleApplied = NSQ.browser.style(browser);
-                    else
+                    console.debug("onStateChange(): (Transferring) Style has not been applied; Styling now.");
+
+                    if (!isChrome(this.browser) || isImage(this.browser)) {
+                        this.styleApplied = NSQ.browser.style(this.browser);
+                    } else {
                         this.styleApplied = true;
+                    }
                 }
             }
         },
 
-        onProgressChange: () => 0,
-        onStatusChange: () => 0,
-        onSecurityChange: () => 0,
-        onRefreshAttempted: () => 0,
-        onLinkIconAvailable: () => 0,
+        onProgressChange: function() {},
+        onStatusChange: function() {},
+        onSecurityChange: function() {},
+        onRefreshAttempted: function() {}
     };
 
     /* Custom observer attached to nsIObserverService.  Used to detect new windows

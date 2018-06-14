@@ -11,7 +11,6 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     var styleAllTimer = null;            // Timer for queueStyleAll()
     var updateStatusTimer = null;        // Timer for queueUpdateStatus()
     var tooltipDirty = false;            // True if tooltip needs updating on hover
-    var listener = null;
 
     this.init = function() {
         this.gBrowser = gBrowser;
@@ -20,9 +19,6 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         this.updateZoomMenu();
 
         this.observer = new NSQ.interfaces.Observer();
-
-        listener = new NSQ.interfaces.TabsProgressListener();
-        gBrowser.addTabsProgressListener(listener);
 
         window.addEventListener('DOMMouseScroll', this.handleMouseScroll, false);
         // XXX: used for image zoom, which feature is currently removed.
@@ -52,8 +48,6 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             this.detach(browser);
 
         this.observer.unhook();
-
-        gBrowser.removeTabsProgressListener(listener);
 
         gBrowser.tabContainer.removeEventListener('TabOpen', this.handleTabOpen, false);
         gBrowser.tabContainer.removeEventListener('TabSelect', this.handleTabSelect, false);
@@ -420,7 +414,11 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     this.attach = function(browser) {
         console.debug('attach(): attached browser URI=' + browser.docShell.document.URL);
 
+        var listener = new NSQ.interfaces.ProgressListener(browser);
+        browser.addProgressListener(listener);
+
         var userData = {
+            listener: listener,
             stylers: [],
             handleDOMFrameContentLoaded: function(event) {
                 if (!event.target.contentWindow)
@@ -438,6 +436,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      */
     this.detach = function(browser) {
         var userData = browser.getUserData('nosquint');
+        browser.removeProgressListener(userData.listener);
         browser.removeEventListener('DOMFrameContentLoaded', userData.handleDOMFrameContentLoaded, true);
         browser.setUserData('nosquint', null, null);
     };
