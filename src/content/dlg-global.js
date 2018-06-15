@@ -178,7 +178,7 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
         li1.setAttribute('label', pattern);
         node.appendChild(li1);
         listbox.appendChild(node);
-        node.addEventListener('dblclick', function() NSQ.dialogs.global.buttonEditException(), false);
+        node.addEventListener('dblclick', () => NSQ.dialogs.global.buttonEditException(), false);
         // Mark the listbox as having been changed from stored prefs.
         listbox.setUserData('nosquint.changed', true, null);
     };
