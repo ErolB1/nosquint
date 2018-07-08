@@ -1,4 +1,7 @@
 NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
+    
+    Components.utils.import("chrome://nosquint/content/lib.js", this);
+    
     const CI = Components.interfaces;
 
     this.id = 'NoSquint.interfaces';
@@ -74,7 +77,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
             NSQ.browser.zoom(this.browser);
 
             // If the site settings dialog was open from this browser, sync it.
-            var dlg = NSQ.storage.dialogs.site;
+            var dlg = lib.storage.dialogs.site;
             if (dlg && dlg.browser == this.browser)
                 dlg.setBrowser(NSQ.browser, this.browser);
         },
@@ -94,7 +97,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                 this.contentType = contentType;
                 var userData = this.browser.getUserData('nosquint');
 
-                if (isChrome(this.browser)) {
+                if (lib.isChrome(this.browser)) {
                     // Content type is changed and it's now chrome.  Unzoom (or
                     // zoom to 100%)
                     console.log("onStateChange(): Content type is changed and it's now chrome.");
@@ -134,7 +137,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                 if (!this.styleApplied) {
                     console.debug("onStateChange(): (Transferring) Style has not been applied; Styling now.");
 
-                    if (!isChrome(this.browser) || isImage(this.browser)) {
+                    if (!lib.isChrome(this.browser) || lib.isImage(this.browser)) {
                         this.styleApplied = NSQ.browser.style(this.browser);
                     } else {
                         this.styleApplied = true;
@@ -164,7 +167,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
             this._os = Components.classes["@mozilla.org/observer-service;1"]
                                  .getService(Components.interfaces.nsIObserverService);
             this._os.addObserver(this, "quit-application-granted", false);
-            if (is3x())
+            if (lib.is3x())
                 this._os.addObserver(this, "em-action-requested", false);
             else {
                 Components.utils.import("resource://gre/modules/AddonManager.jsm");
@@ -174,18 +177,18 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
 
         unhook: function() {
             this._os.removeObserver(this, "quit-application-granted");
-            if (is3x())
+            if (lib.is3x())
                 this._os.removeObserver(this, "em-action-requested");
             else
                 AddonManager.removeAddonListener(this);
         },
 
         onDisabling: function(addon, needsRestart) {
-            if (addon.id != 'nosquint@urandom.ca' || NSQ.storage.disabled)
+            if (addon.id != 'nosquint@urandom.ca' || lib.storage.disabled)
                 return;
 
-            NSQ.storage.disabled = true;
-            if (popup('confirm', NSQ.strings.disableTitle, NSQ.strings.disablePrompt) == 1) {
+            lib.storage.disabled = true;
+            if (lib.popup('confirm', NSQ.strings.disableTitle, NSQ.strings.disablePrompt) == 1) {
                 // Clicked no
             } else
                 NSQ.prefs.setSiteSpecific(true);
@@ -196,16 +199,16 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
         },
 
         onOperationCancelled: function(addon) {
-            if (addon.id != 'nosquint@urandom.ca' || NSQ.storage.disabled != true)
+            if (addon.id != 'nosquint@urandom.ca' || lib.storage.disabled != true)
                 return;
             NSQ.prefs.setSiteSpecific(false);
-            NSQ.storage.disabled = false;
+            lib.storage.disabled = false;
         },
 
         observe: function (subject, topic, data) {
             switch (topic) {
                 case "quit-application-granted":
-                    NSQ.storage.quitting = true;
+                    lib.storage.quitting = true;
                     break;
 
                 // This is for ff 3.x; just dispatch to the 4.x handlers.

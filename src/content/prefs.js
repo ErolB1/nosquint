@@ -12,13 +12,16 @@
  */
 
 NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
-    this.isPrivate = isWindowPrivate();
+    
+    Components.utils.import("chrome://nosquint/content/lib.js", this);
+    
+    this.isPrivate = lib.isWindowPrivate();
     if (!this.isPrivate) {
         // For non-private windows, namespace is a singleton, so return any
         // previously instantiated prefs object.
-        if (NSQ.storage.prefs)
-            return NSQ.storage.prefs;
-        NSQ.storage.prefs = this;
+        if (lib.storage.prefs)
+            return lib.storage.prefs;
+            lib.storage.prefs = this;
     }
 
     this.id = 'NoSquint.prefs';
@@ -34,7 +37,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
      * with has been closed.  In that case, setTimeout will fail with
      * NS_ERROR_NOT_INITIALIZED.  So we keep a reference to an available
      * window here we can call window.* methods with, and if the window
-     * goes away, we find a new one using foreachNSQ().
+     * goes away, we find a new one using lib.forEachNSQ().
      */
     this.window = window;
 
@@ -115,7 +118,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             // associated with, we should finish any pending save now.
             this.finishPendingSaveSiteList();
 
-        if (!NSQ.storage.quitting)
+        if (!lib.storage.quitting)
             // NSQ.prefs is a singleton so we only ever truly destroy on app
             // shutdown.
             return;
@@ -142,7 +145,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             return this.window[func].apply(this.window, args);
         } catch (e) {
             // Presumably NS_ERROR_NOT_INITIALIZED.  TODO: verify.
-            this.window = foreachNSQ(() => false);
+            this.window = lib.forEachNSQ(() => false);
             return this.window[func].apply(this.window, args);
         }
     };
@@ -154,8 +157,8 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
     this.preload = function() {
         // If this is a prefs instance for a private window, clone the shared
         // non-private site list if available.
-        if (this.isPrivate && NSQ.storage.prefs)
-            this.sites = NSQ.storage.prefs.cloneSites();
+        if (this.isPrivate && lib.storage.prefs)
+            this.sites = lib.storage.prefs.cloneSites();
         else
             this.observe(null, "nsPref:changed", "sites");
 
@@ -168,7 +171,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             'fullZoomPrimary', 'wheelZoomInvert', 'zoomImages', 'colorText', 'colorBackground',
             'colorBackgroundImages', 'linksUnvisited', 'linksVisited', 'linksUnderline'
         ];
-        for (let pref in iter(prefs))
+        for (let pref in lib.iter(prefs))
             // Simulate pref change for each pref to populate attributes
             this.observe(null, "nsPref:changed", pref);
     };
@@ -181,25 +184,25 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
 
         switch (data) {
             case 'siteSpecific':
-                if (branchBZ.getBoolPref('siteSpecific') == false || NSQ.storage.disabled || NSQ.storage.quitting)
+                if (branchBZ.getBoolPref('siteSpecific') == false || lib.storage.disabled || lib.storage.quitting)
                     // disabled, which is fine with us, so ignore.
                     break;
 
                 // yes == 0, no or close == 1
-                if (popup('confirm', NSQ.strings.siteSpecificTitle, NSQ.strings.siteSpecificPrompt) == 1)
-                    popup('alert', NSQ.strings.siteSpecificBrokenTitle, NSQ.strings.siteSpecificBrokenPrompt);
+                if (lib.popup('confirm', NSQ.strings.siteSpecificTitle, NSQ.strings.siteSpecificPrompt) == 1)
+                    lib.popup('alert', NSQ.strings.siteSpecificBrokenTitle, NSQ.strings.siteSpecificBrokenPrompt);
                 else
                     this.setSiteSpecific(false);
                 break;
 
             case 'fullZoomLevel':
                 this.fullZoomLevel = branchNS.getIntPref('fullZoomLevel');
-                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueZoomAll() : null);
+                lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueZoomAll() : null);
                 break;
 
             case 'textZoomLevel':
                 this.textZoomLevel = branchNS.getIntPref('textZoomLevel');
-                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueZoomAll() : null);
+                lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueZoomAll() : null);
                 break;
 
             case 'wheelZoomEnabled':
@@ -221,7 +224,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
 
             case 'fullZoomPrimary':
                 this.fullZoomPrimary = branchNS.getBoolPref('fullZoomPrimary');
-                foreachNSQ(function(NSQ) {
+                lib.forEachNSQ(function(NSQ) {
                     if (NSQ.browser) {
                         NSQ.browser.updateZoomMenu();
                         NSQ.browser.queueZoomAll();
@@ -236,9 +239,9 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             case 'hideStatus':
                 var hideStatus = branchNS.getBoolPref('hideStatus');
                 this.hideStatus = hideStatus;
-                foreachNSQ(function(NSQ) {
+                lib.forEachNSQ(function(NSQ) {
                     if (NSQ.browser) {
-                        $('nosquint-status').hidden = hideStatus;
+                        lib.$('nosquint-status').hidden = hideStatus;
                         if (!hideStatus) {
                             // Status now being shown; update it to reflect current values.
                             NSQ.browser.queueUpdateStatus();
@@ -249,9 +252,9 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
 
             case 'rememberSites':
                 this.rememberSites = branchNS.getBoolPref('rememberSites');
-                if (NSQ.storage.dialogs.site)
+                if (lib.storage.dialogs.site)
                     // Toggle the warning in sites dialog.
-                    NSQ.storage.dialogs.site.updateWarning();
+                    lib.storage.dialogs.site.updateWarning();
                 // TODO: if false, remove stored sites settings immediately, but keep
                 // in memory until end of session.
                 break;
@@ -263,7 +266,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             case 'exceptions':
                 // Parse exceptions list from prefs
                 this.exceptions = this.parseExceptions(branchNS.getCharPref('exceptions'));
-                foreachNSQ(function(NSQ) {
+                lib.forEachNSQ(function(NSQ) {
                     if (NSQ.browser) {
                         NSQ.browser.updateZoomMenu();
                         NSQ.browser.queueZoomAll();
@@ -290,7 +293,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
                      */
                      this.stopQueueSaveSiteList();
                 }
-                foreachNSQ(function(NSQ) {
+                lib.forEachNSQ(function(NSQ) {
                     if (NSQ.browser) {
                         NSQ.browser.queueZoomAll();
                         NSQ.browser.queueStyleAll();
@@ -300,32 +303,32 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
 
             case 'colorText':
                 this.colorText = branchNS.getCharPref('colorText');
-                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'colorBackground':
                 this.colorBackground = branchNS.getCharPref('colorBackground');
-                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'colorBackgroundImages':
                 this.colorBackgroundImages = branchNS.getBoolPref('colorBackgroundImages');
-                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'linksUnvisited':
                 this.linksUnvisited = branchNS.getCharPref('linksUnvisited');
-                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'linksVisited':
                 this.linksVisited = branchNS.getCharPref('linksVisited');
-                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
 
             case 'linksUnderline':
                 this.linksUnderline = branchNS.getBoolPref('linksUnderline');
-                foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
+                lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll() : null);
                 break;
         }
     };
@@ -354,7 +357,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
         var sitesList = sitesStr.replace(/(^\s+|\s+$)/g, '').split(' ');
         var now = new Date().getTime();
 
-        for (let defn in iter(sitesList)) {
+        for (let defn in lib.iter(sitesList)) {
             var parts = defn.split('=');
             if (parts.length != 2)
                 continue; // malformed
@@ -422,7 +425,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             };
 
             var group = 1;
-            for (let part in iter(parts)) {
+            for (let part in lib.iter(parts)) {
                 if (part == '')
                     continue;
                 if (wildcards[part])
@@ -441,7 +444,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
         }
 
         var exceptions = [];
-        for (var origexc in iter(exlist)) {
+        for (var origexc in lib.iter(exlist)) {
             if (!origexc)
                 continue;
             // Escape metacharacters except *
@@ -472,7 +475,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
 
         var remove = [];
         var now = new Date();
-        for (let [site, settings] of items(this.sites)) {
+        for (let [site, settings] of lib.items(this.sites)) {
             if (!settings)
                 continue
             var [text, timestamp, counter, full] = settings;
@@ -483,7 +486,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             console.debug("pruneSites(): site=" + site + ", age=" + Math.round(age/1000/60/60/24) + " days, prune=" + prune);
         }
         if (remove.length) {
-            for (let site in iter(remove))
+            for (let site in lib.iter(remove))
                 delete this.sites[site];
             this.queueSaveSiteList();
         }
@@ -520,7 +523,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             record[0] = text == text_default ? 0 : text;
             record[3] = full == full_default ? 0 : full;
             // Update all other tabs for this site.
-            foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueZoomAll(site, 1000) : null);
+            lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueZoomAll(site, 1000) : null);
         }
         if (style) {
             record[4] = style.colorText || '0';
@@ -530,7 +533,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             record[8] = style.linksVisited || '0';
             record[9] = style.linksUnderline || '0';
             // Update all other tabs for this site.
-            foreachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll(site, 1000) : null);
+            lib.forEachNSQ((NSQ) => NSQ.browser ? NSQ.browser.queueStyleAll(site, 1000) : null);
         }
 
         // Check newly updated record against defaults.  If all values are default, we
@@ -594,7 +597,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             return;
         var t0 = new Date().getTime();
         var sites = [];
-        for (let [site, settings] of items(this.sites)) {
+        for (let [site, settings] of lib.items(this.sites)) {
             if (!settings)
                 continue;
             sites.push(site + "=" + settings.join(','));
@@ -676,7 +679,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             var uri_port = '0';
         }
 
-        var base = getBaseDomainFromHost(uri_host);
+        var base = lib.getBaseDomainFromHost(uri_host);
         if (!base && !uri_host)
             // file:// url, use base as /
             base = '/';
@@ -689,7 +692,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
          * We break the loop on the first match, because exceptions are
          * sorted with highest weights first.
          */
-        for (let exc in iter(this.exceptions)) {
+        for (let exc in lib.iter(this.exceptions)) {
             var [_, weight, exc_host, re_host, sub_host, re_path, sub_path] = exc;
             if (re_host.substr(0, 11) == '([^.:/]+)(:') // exc_host == *[:...]
                 // Single star is base name, so match just that, plus any port spec
@@ -765,7 +768,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
         var newstyle = { enabled: false };
         var boolDefaults = {colorBackgroundImages: false, linksUnderline: false};
         var isDefault = (o, attr) => !o || !o[attr] || o[attr] in ['0', false];
-        for (let [key, value] of items(this.defaultColors, boolDefaults)) {
+        for (let [key, value] of lib.items(this.defaultColors, boolDefaults)) {
             newstyle[key] = isDefault(style, key) ? (isDefault(this, key) ? null : this[key]) : style[key];
             newstyle.enabled = newstyle.enabled || Boolean(newstyle[key]);
         }
@@ -786,13 +789,13 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             'colorText', 'colorBackground', 'linksUnvisited', 'linksVisited'
         ];
 
-        for (let pref in iter(intPrefs))
+        for (let pref in lib.iter(intPrefs))
             branchNS.setIntPref(pref, this[pref]);
 
-        for (let pref in iter(boolPrefs))
+        for (let pref in lib.iter(boolPrefs))
             branchNS.setBoolPref(pref, this[pref]);
 
-        for (let pref in iter(charPrefs))
+        for (let pref in lib.iter(charPrefs))
             branchNS.setCharPref(pref, this[pref]);
 
         var exChanged = false;
@@ -808,13 +811,13 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             }
         }
 
-        foreachNSQ(function(NSQ) {
+        lib.forEachNSQ(function(NSQ) {
             if (!NSQ.browser)
                 return;
             if (exChanged) {
                 // exceptions changed, site names may have changed, so regenerate
                 // site names for all browsers.
-                for (let browser in iter(NSQ.browser.gBrowser.browsers))
+                for (let browser in lib.iter(NSQ.browser.gBrowser.browsers))
                     browser.getUserData('nosquint').site = NSQ.browser.getSiteFromBrowser(browser);
             }
             NSQ.browser.queueZoomAll();
@@ -838,7 +841,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             }
         }
         this.saveSiteList();
-        foreachNSQ(function(NSQ) {
+        lib.forEachNSQ(function(NSQ) {
             if (NSQ.browser) {
                 NSQ.browser.queueZoomAll();
                 NSQ.browser.queueStyleAll();
@@ -852,8 +855,8 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
         function callback(addon) {
             NSQ.prefs.currentVersion = addon.version;
             var found = false;
-            foreachNSQ(function(NSQ) {
-                for (let browser in iter(NSQ.browser.gBrowser.browsers)) {
+            lib.forEachNSQ(function(NSQ) {
+                for (let browser in lib.iter(NSQ.browser.gBrowser.browsers)) {
                     if (browser.currentURI.spec == 'about:nosquint') {
                         /* With ff4, fetching the addon object is asynchronous, and with ff3, we
                          * defer this callback also (so as not to take the startup hit), so any
@@ -884,7 +887,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
                 last_parts = (NSQ.prefs.lastVersion || '0.0').split('.');
                 if (cur_parts[0] > last_parts[0] || (cur_parts[0] == last_parts[0] && cur_parts[1] > last_parts[1]))
                     if (!found) {
-                        defer(500, function() {
+                        lib.defer(500, function() {
                             NSQ.browser.gBrowser.selectedTab = gBrowser.addTab('about:nosquint');
                         });
                     }
@@ -893,11 +896,11 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             }
         };
 
-        if (is3x()) {
+        if (lib.is3x()) {
             /* Because this.checkVersionChange() is called during init of NSQ.browser,
              * and Application.extensions.get() is synchronous, defer this call.
              */
-            defer(0, () => callback(Application.extensions.get('nosquint@urandom.ca')));
+            lib.defer(0, () => callback(Application.extensions.get('nosquint@urandom.ca')));
         } else {
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
             AddonManager.getAddonByID('nosquint@urandom.ca', callback);

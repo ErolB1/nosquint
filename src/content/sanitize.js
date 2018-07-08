@@ -2,6 +2,9 @@
 // chrome://browser/content/preferences/sanitize.xul 
 
 NoSquint.sanitizer = NoSquint.ns(function() { with (NoSquint) {
+    
+    Components.utils.import("chrome://nosquint/content/lib.js", this);
+    
     this.init = function() {
         // Adds nosquint option to sanitizer UI
         this.attachOption(NSQ.strings.sanitizeLabel)
@@ -19,7 +22,7 @@ NoSquint.sanitizer = NoSquint.ns(function() { with (NoSquint) {
         // pref domain is privacy.cpd. for Firefox 3.1+, and privacy.item. for 3.0
         // and earlier.
         var domain = 'privacy.cpd.';
-        if ($('privacy.item.cache'))
+        if (lib.$('privacy.item.cache'))
             domain = 'privacy.item.';
         var prefs = document.getElementsByTagName('preferences')[0];
         var pref = document.createElement('preference');
@@ -31,9 +34,9 @@ NoSquint.sanitizer = NoSquint.ns(function() { with (NoSquint) {
         prefService.setBoolPref(domain + 'extensions-nosquint', value);
         prefs.appendChild(pref);
 
-        if ($('itemList')) {
+        if (lib.$('itemList')) {
             // In Clear Recent History dialog in Firefox 3.0
-            var check = $('itemList').appendItem(label);
+            var check = lib.$('itemList').appendItem(label);
             check.setAttribute('type', 'checkbox');
         } else {
             // Firefox 3.0, or Firefox 3.5 in Settings, where the user sets which to enable/disable.

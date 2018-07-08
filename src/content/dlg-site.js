@@ -1,24 +1,27 @@
 NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
-    this.strings = getStringBundle('dlg-site');
+    
+    Components.utils.import("chrome://nosquint/content/lib.js", this);
+    
+    this.strings = lib.getStringBundle('dlg-site');
 
     var updateTimer = null;
 
     this.init = function() {
-        NSQ.storage.dialogs.site = this;
-        this.dlg = $('nosquint-dialog-site');
+        lib.storage.dialogs.site = this;
+        this.dlg = lib.$('nosquint-dialog-site');
 
         this.setBrowser(window.arguments[0], window.arguments[1]);
 
-        $('full-zoom-level').onchange = () => NSQ.dialogs.site.valueChange(this);
-        $('text-zoom-level').onchange = () => NSQ.dialogs.site.valueChange(this);
+        lib.$('full-zoom-level').onchange = () => NSQ.dialogs.site.valueChange(this);
+        lib.$('text-zoom-level').onchange = () => NSQ.dialogs.site.valueChange(this);
 
         var restyle = () => NSQ.dialogs.site.style(true, false);
         for (let id in NSQ.browser.prefs.defaultColors) {
-            $(id).addEventListener('CheckboxStateChange', this.colorChecked, false);
-            $(id).parentNode.childNodes[1].onchange = restyle;
+            lib.$(id).addEventListener('CheckboxStateChange', this.colorChecked, false);
+            lib.$(id).parentNode.childNodes[1].onchange = restyle;
         }
-        $('colorBackgroundImages').addEventListener('CheckboxStateChange', restyle, false);
-        $('linksUnderline').addEventListener('CheckboxStateChange', restyle, false);
+        lib.$('colorBackgroundImages').addEventListener('CheckboxStateChange', restyle, false);
+        lib.$('linksUnderline').addEventListener('CheckboxStateChange', restyle, false);
     };
 
 
@@ -40,7 +43,7 @@ NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.finalize = function() {
-        NSQ.storage.dialogs.site = null;
+        lib.storage.dialogs.site = null;
     };
 
     this.discoverSiteNameChange = function() {
@@ -73,17 +76,17 @@ NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
 
         this.updateWarning();
 
-        $('caption').label = this.site;
-        $('text-zoom-slider').value = text;
-        $('full-zoom-slider').value = full;
+        lib.$('caption').label = this.site;
+        lib.$('text-zoom-slider').value = text;
+        lib.$('full-zoom-slider').value = full;
 
-        for (let [id, defcolor] of items(NSQ.browser.prefs.defaultColors)) {
-            $(id).parentNode.childNodes[1].color = (!style || style[id] == '0' ? defcolor : style[id]);
-            $(id).checked = Boolean(style && style[id] && style[id] != '0');
-            this.colorChecked.apply($(id));
+        for (let [id, defcolor] of lib.items(NSQ.browser.prefs.defaultColors)) {
+            lib.$(id).parentNode.childNodes[1].color = (!style || style[id] == '0' ? defcolor : style[id]);
+            lib.$(id).checked = Boolean(style && style[id] && style[id] != '0');
+            this.colorChecked.apply(lib.$(id));
         }
-        for (let attr in iter(['colorBackgroundImages', 'linksUnderline']))
-            $(attr).checked = Boolean(style && style[attr] && style[attr] != '0');
+        for (let attr in lib.iter(['colorBackgroundImages', 'linksUnderline']))
+            lib.$(attr).checked = Boolean(style && style[attr] && style[attr] != '0');
         window.focus();
         window.sizeToContent();
         this.dialogSettingsAuthoritative = true;
@@ -96,8 +99,8 @@ NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
         else if (!NSQ.browser.prefs.rememberSites)
             content = this.strings.warningForgetSites;
 
-        $('warning-box-content').innerHTML = content;
-        $('warning-box').style.display = content ? '' : 'none';
+        lib.$('warning-box-content').innerHTML = content;
+        lib.$('warning-box').style.display = content ? '' : 'none';
         window.sizeToContent();
     };
 
@@ -115,7 +118,7 @@ NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
 
     // Callback when text/full zoom text input is changed.
     this.valueChange = function(target) {
-        $(target.id.replace('level', 'slider')).value = target.value;
+        lib.$(target.id.replace('level', 'slider')).value = target.value;
         this.queueUpdateZoom();
     };
 
@@ -124,13 +127,13 @@ NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
         // Snap to increments of 5.
         target.value = parseInt(target.value / 5) * 5;
         // Sync slider value to text input field.
-        $(target.id.replace('slider', 'level')).value = target.value;
+        lib.$(target.id.replace('slider', 'level')).value = target.value;
         this.queueUpdateZoom();
     };
 
     this.buttonUseDefault = function(target) {
         var [text, full] = NSQ.browser.prefs.getZoomDefaults(this.site);
-        var input = $(target.id.replace('button', 'level'));
+        var input = lib.$(target.id.replace('button', 'level'));
         input.value = (input.id == 'text-zoom-level' ? text : full);
         input.onchange();
     };
@@ -154,7 +157,7 @@ NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
 
     this.getZoomLevels = function() {
         if (this.dialogSettingsAuthoritative)
-            return [$('text-zoom-level').value, $('full-zoom-level').value];
+            return [lib.$('text-zoom-level').value, lib.$('full-zoom-level').value];
         else
             return NSQ.browser.prefs.getZoomForSiteWithDefaults(this.site);
     };
@@ -177,12 +180,12 @@ NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
 
         // Return style object according to dialog settings.
         var style = {enabled: false};
-        for (let attr in iter(NSQ.browser.prefs.defaultColors)) {
-            style[attr] = $(attr).checked ? $(attr).parentNode.childNodes[1].color : null;
+        for (let attr in lib.iter(NSQ.browser.prefs.defaultColors)) {
+            style[attr] = lib.$(attr).checked ? lib.$(attr).parentNode.childNodes[1].color : null;
             style.enabled = style.enabled || Boolean(style[attr]);
         }
-        for (let attr in iter(['colorBackgroundImages', 'linksUnderline'])) {
-            style[attr] = Boolean($(attr).checked);
+        for (let attr in lib.iter(['colorBackgroundImages', 'linksUnderline'])) {
+            style[attr] = Boolean(lib.$(attr).checked);
             style.enabled = style.enabled || Boolean(style[attr]);
         }
         if (noDefaults === undefined || !noDefaults)

@@ -7,15 +7,20 @@
 NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     const CI = Components.interfaces;
     this.id = 'NoSquint.browser';
+
+    Components.utils.import("chrome://nosquint/content/lib.js", this);
+
     var zoomAllTimer = null;             // Timer for queueZoomAll()
     var styleAllTimer = null;            // Timer for queueStyleAll()
     var updateStatusTimer = null;        // Timer for queueUpdateStatus()
     var tooltipDirty = false;            // True if tooltip needs updating on hover
 
     this.init = function() {
+        lib.init();
+
         this.gBrowser = gBrowser;
-        this.isPrivate = isWindowPrivate();
-        this.prefs = NSQ.prefs;
+        this.isPrivate = lib.isWindowPrivate();
+        this.prefs = NoSquint.prefs;
         this.updateZoomMenu();
 
         this.observer = new NSQ.interfaces.Observer();
@@ -36,15 +41,15 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.destroy = function() {
-        if (NSQ.storage.dialogs.site)
-            NSQ.storage.dialogs.site.die();
+        if (lib.storage.dialogs.site)
+            lib.storage.dialogs.site.die();
 
         /* When the window is closed, the TabClose event doesn't fire for each
          * browser tab automatically, so we must clean up explicitly.
          *
          * This fixes issue #1 which reports zombie compartments.
          */
-        for (let browser in iter(gBrowser.browsers))
+        for (let browser in lib.iter(gBrowser.browsers))
             this.detach(browser);
 
         this.observer.unhook();
@@ -56,15 +61,15 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.hookZoomButtonsForReset = function() {
-        if ($('zoom-out-button')) {
-            $('zoom-out-button').onclick = $('zoom-in-button').onclick =
+        if (lib.lib.$('zoom-out-button')) {
+            lib.lib.$('zoom-out-button').onclick = lib.lib.$('zoom-in-button').onclick =
                 function(event) {
                     if (event.button == 1)
                         NoSquint.cmd.buttonReset(event);
                 };
 
             /* TODO
-            $('zoom-out-button').addEventListener('DOMMouseScroll', function(event) {
+            lib.$('zoom-out-button').addEventListener('DOMMouseScroll', function(event) {
                 // Implement wheel zooming over button here.
             }, false);
             */
@@ -72,9 +77,9 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.hookEventListeners = function() {
-        if ($('nosquint-status')) {
+        if (lib.lib.$('nosquint-status')) {
             // Add a scroll event listener to zoom on scroll
-            $('nosquint-status').addEventListener('DOMMouseScroll', function(event) {
+            lib.lib.$('nosquint-status').addEventListener('DOMMouseScroll', function(event) {
                 NSQ.cmd.statusPanelScroll(event);
             }, false);
         }
@@ -83,7 +88,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     /* Turns on the Addon Bar (Firefox 4)
      */
     this.enableAddonBar = function() {
-        var bar = $('addon-bar');
+        var bar = lib.lib.$('addon-bar');
         setToolbarVisibility(bar, true);
     };
 
@@ -93,11 +98,11 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      * toolbar here the first button was found.
      */
     this.checkToolbar = function() {
-        var [ver, button] = [4, $('zoom-controls')];
+        var [ver, button] = [4, lib.lib.$('zoom-controls')];
         if (!button)
-            var [ver, button] = [3, $('nosquint-button-reduce')];
+            var [ver, button] = [3, lib.lib.$('nosquint-button-reduce')];
         if (!button)
-            var [ver, button] = [3, $('nosquint-button-enlarge')];
+            var [ver, button] = [3, lib.lib.$('nosquint-button-enlarge')];
         if (!button)
             return [0, null];
         else {
@@ -124,21 +129,21 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         }
 
         if (action & 2) {
-            remove($('nosquint-button-reduce'));
-            remove($('nosquint-button-enlarge'));
-            remove($('nosquint-button-reset'));
-            remove($('zoom-controls'));
+            remove(lib.lib.$('nosquint-button-reduce'));
+            remove(lib.lib.$('nosquint-button-enlarge'));
+            remove(lib.lib.$('nosquint-button-reset'));
+            remove(lib.lib.$('zoom-controls'));
         }
 
         if (action & 1) {
-            var navbar = $('nav-bar');
+            var navbar = lib.lib.$('nav-bar');
             var set = navbar.currentSet.split(',');
             if (where === undefined || where === null) {
                 where = set.indexOf('search-container') + 1;
                 if (where == 0)
                     where = set.length;
             }
-            var ids = is3x() ? 'nosquint-button-reduce,nosquint-button-enlarge' : 'zoom-controls';
+            var ids = lib.is3x() ? 'nosquint-button-reduce,nosquint-button-enlarge' : 'zoom-controls';
             set = set.slice(0, where).concat(ids).concat(set.slice(where));
             navbar.currentSet = set.join(',');
             navbar.setAttribute('currentset', set.join(','));
@@ -172,7 +177,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             browser = gBrowser.selectedBrowser;
             text = full = false;
             increment = NSQ.prefs.zoomIncrement * (event.detail < 0 ? 1 : -1);
-            img = isImage(browser);
+            img = lib.isImage(browser);
 
             if (NSQ.prefs.wheelZoomInvert)
                 increment *= -1;
@@ -215,11 +220,11 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      * Global prefs.
      */
     this.updateZoomMenu = function() {
-        var popup = $('viewFullZoomMenu').childNodes[0];
-        var full_zoom_primary = NSQ.prefs.fullZoomPrimary;
+        var popup = lib.$('viewFullZoomMenu').childNodes[0];
+        var full_zoom_primary = NoSquint.prefs.fullZoomPrimary;
 
-        if (!$('nosquint-view-menu-settings')) {
-            for (let [i, child] of enumerate(popup.childNodes)) {
+        if (!lib.lib.$('nosquint-view-menu-settings')) {
+            for (let [i, child] of lib.enumerate(popup.childNodes)) {
                 if (child.id == 'toggle_zoom')
                     child.hidden = true;
                 if (child.nodeName != 'menuitem' || child.command === undefined ||
@@ -243,7 +248,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             popup.appendChild(item);
         }
 
-        for (let child in iter(popup.childNodes)) {
+        for (let child in lib.iter(popup.childNodes)) {
             if (child.nodeName != 'menuitem')
                 continue;
             var command = child.getAttribute('command');
@@ -270,14 +275,14 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         var text = Math.round(browser.markupDocumentViewer.textZoom * 100);
         var full = Math.round(browser.markupDocumentViewer.fullZoom * 100);
 
-        var e = $('nosquint-status');
+        var e = lib.lib.$('nosquint-status');
         // updateStatusTooltip() won't be called unless site is not null.
-        $('nosquint-status-tooltip-site').value = site.replace(/%20/g, ' ');
-        $('nosquint-status-tooltip-full').value = full + '%';
-        $('nosquint-status-tooltip-text').value = text + '%';
+        lib.lib.$('nosquint-status-tooltip-site').value = site.replace(/%20/g, ' ');
+        lib.lib.$('nosquint-status-tooltip-full').value = full + '%';
+        lib.lib.$('nosquint-status-tooltip-text').value = text + '%';
 
         var style = this.getStyleForBrowser(browser);
-        var label = $('nosquint-status-tooltip-textcolor');
+        var label = lib.lib.$('nosquint-status-tooltip-textcolor');
         if (style.colorBackground || style.colorText) {
             label.style.padding = '2px 10px';
             label.style.border = '1px solid black';
@@ -289,8 +294,8 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         label.style.backgroundColor = style.colorBackground || 'inherit';
         label.value = (style.colorText || style.colorBackground) ? 'Sample' : 'Site Controlled';
 
-        var vis = $('nosquint-status-tooltip-vis-link');
-        var unvis = $('nosquint-status-tooltip-unvis-link');
+        var vis = lib.lib.$('nosquint-status-tooltip-vis-link');
+        var unvis = lib.lib.$('nosquint-status-tooltip-unvis-link');
         unvis.value = vis.value = '';
         vis.style.color = vis.style.textDecoration = 'inherit';
         unvis.style.color = unvis.style.textDecoration = 'inherit';
@@ -298,7 +303,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         if (!style.linksUnvisited && !style.linksVisited)
             unvis.value = 'Site Controlled';
         else {
-            for (let [attr, elem] of items({'linksUnvisited': unvis, 'linksVisited': vis})) {
+            for (let [attr, elem] of lib.items({'linksUnvisited': unvis, 'linksVisited': vis})) {
                 if (style[attr]) {
                     elem.value = attr.replace('links', '');
                     elem.style.color = style[attr];
@@ -316,7 +321,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         var browser = gBrowser.selectedBrowser;
         var site = browser.getUserData('nosquint').site;
         // Disable/enable context menu item.
-        $('nosquint-menu-settings').disabled = (site === null);
+        lib.lib.$('nosquint-menu-settings').disabled = (site === null);
 
         if (updateStatusTimer) {
             clearTimeout(updateStatusTimer);
@@ -327,7 +332,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             // Pref indicates we're hiding status panel, no sense in updating.
             return;
 
-        var e = $('nosquint-status');
+        var e = lib.lib.$('nosquint-status');
         if (site) {
             var text = Math.round(browser.markupDocumentViewer.textZoom * 100);
             var full = Math.round(browser.markupDocumentViewer.fullZoom * 100);
@@ -338,11 +343,11 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             else
                 e.label = text + '%' + (full == full_default ? '' : (' / ' + full + '%'));
 
-            $('nosquint-status-tooltip').style.display = '';
+            lib.lib.$('nosquint-status-tooltip').style.display = '';
             e.style.fontStyle = e.style.opacity = 'inherit';
             tooltipDirty = true;
         } else {
-            $('nosquint-status-tooltip').style.display = 'none';
+            lib.lib.$('nosquint-status-tooltip').style.display = 'none';
             e.label = 'N/A';
             /* Lame: the documentation for statusbarpanel says there is a
              * disabled attribute.  The DOM Inspector says otherwise.  So we
@@ -365,7 +370,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      * site name user data attached to the browser.
      */
     this.getSiteFromBrowser = function(browser) {
-        if (isChrome(browser))
+        if (lib.isChrome(browser))
             return null;
         return NSQ.prefs.getSiteFromURI(browser.currentURI);
     };
@@ -383,12 +388,12 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         }
         // If the site dialog is open on the current site, get the zoom levels
         // from that instead as it should be treated as authoritative.
-        var siteDlg = NSQ.storage.dialogs.site;
+        var siteDlg = lib.storage.dialogs.site;
         if (siteDlg && siteDlg.site == site) {
             // Exception: if the site dialog is for a private window other
             // than this one, don't use the site dialog settings otherwise
             // private window settings would leak out of the window.
-            if (this.isPrivate == isWindowPrivate(siteDlg.browser.contentWindow) &&
+            if (this.isPrivate == lib.isWindowPrivate(siteDlg.browser.contentWindow) &&
                 (!this.isPrivate || siteDlg.browser == browser))
                 return siteDlg.getZoomLevels();
         }
@@ -481,7 +486,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      */
     this.zoomAll = function(site, attach) {
         console.debug("zoomAll(): site=" + site + ", attach=" + attach);
-        for (let browser in iter(gBrowser.browsers)) {
+        for (let browser in lib.iter(gBrowser.browsers)) {
             if (site && site != browser.getUserData('nosquint').site)
                 continue;
             if (attach)
@@ -510,9 +515,9 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         var site = browser.getUserData('nosquint').site;
         // Use site dialog settings if applicable.  See getZoomForBrowser()
         // for explanation.
-        var siteDlg = NSQ.storage.dialogs.site;
+        var siteDlg = lib.storage.dialogs.site;
         if (siteDlg && siteDlg.site == site) {
-            if (this.isPrivate == isWindowPrivate(siteDlg.browser.contentWindow) &&
+            if (this.isPrivate == lib.isWindowPrivate(siteDlg.browser.contentWindow) &&
                 (!this.isPrivate || siteDlg.browser == browser))
                 return siteDlg.getStyle();
         }
@@ -614,7 +619,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.styleAll = function(site) {
-        for (let browser in iter(gBrowser.browsers)) {
+        for (let browser in lib.iter(gBrowser.browsers)) {
             if (site && site != browser.getUserData('nosquint').site)
                 continue;
             this.style(browser);

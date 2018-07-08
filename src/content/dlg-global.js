@@ -1,46 +1,49 @@
 NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
-    this.strings = getStringBundle('dlg-global');
-    var branchPI = NSQ.prefs.svc.getBranch('privacy.' + (is30() ? 'item.' : 'cpd.'));
+
+    Components.utils.import("chrome://nosquint/content/lib.js", this);
+
+    this.strings = lib.getStringBundle('dlg-global');
+    var branchPI = NSQ.prefs.svc.getBranch('privacy.' + (lib.is30() ? 'item.' : 'cpd.'));
 
     this.init = function() {
-        NSQ.storage.dialogs.global = this;
-        this.dlg = $('nosquint-dialog-global');
+        lib.storage.dialogs.global = this;
+        this.dlg = lib.lib.$('nosquint-dialog-global');
         this.url = window.arguments ? window.arguments[0] : null;
 
         // General tab
-        $('rememberSites').selectedIndex = Number(!NSQ.prefs.rememberSites);
-        $('siteForget').checked = (NSQ.prefs.forgetMonths != 0);
-        $('siteForget-menu').value = NSQ.prefs.forgetMonths;
-        $('siteForget').addEventListener('CheckboxStateChange', () => NSQ.dialogs.global.forgetMonthsChecked(), false);
-        $('siteSanitize').checked = branchPI.getBoolPref('extensions-nosquint');
+        lib.lib.$('rememberSites').selectedIndex = Number(!NSQ.prefs.rememberSites);
+        lib.lib.$('siteForget').checked = (NSQ.prefs.forgetMonths != 0);
+        lib.lib.$('siteForget-menu').value = NSQ.prefs.forgetMonths;
+        lib.lib.$('siteForget').addEventListener('CheckboxStateChange', () => NSQ.dialogs.global.forgetMonthsChecked(), false);
+        lib.lib.$('siteSanitize').checked = branchPI.getBoolPref('extensions-nosquint');
 
         // Zooming tab
-        $('fullZoomLevel').value = NSQ.prefs.fullZoomLevel;
-        $('textZoomLevel').value = NSQ.prefs.textZoomLevel;
-        $('zoomIncrement').value = NSQ.prefs.zoomIncrement;
+        lib.lib.$('fullZoomLevel').value = NSQ.prefs.fullZoomLevel;
+        lib.lib.$('textZoomLevel').value = NSQ.prefs.textZoomLevel;
+        lib.lib.$('zoomIncrement').value = NSQ.prefs.zoomIncrement;
         // XXX: image zoom feature disabled for now.
-        //$('zoomImages').checked  = NSQ.prefs.zoomImages;
-        $('showStatus').checked  = !NSQ.prefs.hideStatus;
-        $('wheelZoomEnabled').checked  = NSQ.prefs.wheelZoomEnabled;
-        $('primaryZoomMethod-menu').value = NSQ.prefs.fullZoomPrimary ? 'full' : 'text';
+        //lib.$('zoomImages').checked  = NSQ.prefs.zoomImages;
+        lib.lib.$('showStatus').checked  = !NSQ.prefs.hideStatus;
+        lib.lib.$('wheelZoomEnabled').checked  = NSQ.prefs.wheelZoomEnabled;
+        lib.lib.$('primaryZoomMethod-menu').value = NSQ.prefs.fullZoomPrimary ? 'full' : 'text';
         this.rememberSelect();
 
         // Color tab
-        for (let [id, defcolor] of items(NSQ.prefs.defaultColors)) {
+        for (let [id, defcolor] of lib.items(NSQ.prefs.defaultColors)) {
             var color = NSQ.prefs[id];
-            $(id).parentNode.childNodes[1].color = (color == '0' ? defcolor : color);
-            $(id).addEventListener('CheckboxStateChange', this.colorChecked, false);
-            $(id).checked = (color == '0' ? false : true);
-            this.colorChecked.apply($(id));
+            lib.lib.$(id).parentNode.childNodes[1].color = (color == '0' ? defcolor : color);
+            lib.lib.$(id).addEventListener('CheckboxStateChange', this.colorChecked, false);
+            lib.lib.$(id).checked = (color == '0' ? false : true);
+            this.colorChecked.apply(lib.$(id));
         }
-        $('colorBackgroundImages').checked = NSQ.prefs.colorBackgroundImages;
-        $('linksUnderline').checked = NSQ.prefs.linksUnderline;
+        lib.lib.$('colorBackgroundImages').checked = NSQ.prefs.colorBackgroundImages;
+        lib.lib.$('linksUnderline').checked = NSQ.prefs.linksUnderline;
 
         // Exceptions tab
-        $('copyURL-button').style.display = this.url ? '' : 'none';
-        for (let exc in iter(NSQ.prefs.exceptions))
+        lib.lib.$('copyURL-button').style.display = this.url ? '' : 'none';
+        for (let exc in lib.iter(NSQ.prefs.exceptions))
             this.exceptionsListAdd(exc[0].replace(/%20/g, ' '), false);
-        $('exceptionsList').setUserData('nosquint.changed', false, null);
+            lib.lib.$('exceptionsList').setUserData('nosquint.changed', false, null);
         this.excListSelect();
     };
 
@@ -53,16 +56,16 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.finalize = function() {
-        NSQ.storage.dialogs.global = null;
+        lib.storage.dialogs.global = null;
     };
 
     this.help = function() {
-        var tab = $('tabs').selectedPanel.id.replace(/tab$/, '');
+        var tab = lib.lib.$('tabs').selectedPanel.id.replace(/tab$/, '');
         window.openDialog('chrome://nosquint/content/dlg-help.xul', null, 'chrome', tab);
     };
 
     this.close = function() {
-        if ($('pattern').value != '')
+        if (lib.lib.$('pattern').value != '')
             /* User entered stuff in exception input but OK'd dialog without
              * adding the exception.  We assume here the user actually _wanted_
              * the exception to be added, so add it automatically.  This is
@@ -71,28 +74,28 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
             this.buttonAddException();
 
         // General tab
-        NSQ.prefs.rememberSites = !Boolean($('rememberSites').selectedIndex);
-        NSQ.prefs.forgetMonths = $('siteForget').checked ? $('siteForget-menu').value : 0;
-        branchPI.setBoolPref('extensions-nosquint', $('siteSanitize').checked);
+        NSQ.prefs.rememberSites = !Boolean(lib.lib.$('rememberSites').selectedIndex);
+        NSQ.prefs.forgetMonths = lib.lib.$('siteForget').checked ? lib.lib.$('siteForget-menu').value : 0;
+        branchPI.setBoolPref('extensions-nosquint', lib.lib.$('siteSanitize').checked);
 
         // Zooming tab
-        NSQ.prefs.fullZoomLevel = parseInt($('fullZoomLevel').value);
-        NSQ.prefs.textZoomLevel = parseInt($('textZoomLevel').value);
-        NSQ.prefs.zoomIncrement = parseInt($('zoomIncrement').value);
+        NSQ.prefs.fullZoomLevel = parseInt(lib.lib.$('fullZoomLevel').value);
+        NSQ.prefs.textZoomLevel = parseInt(lib.lib.$('textZoomLevel').value);
+        NSQ.prefs.zoomIncrement = parseInt(lib.lib.$('zoomIncrement').value);
         // XXX: image zoom feature disabled for now.
-        //NSQ.prefs.zoomImages = $('zoomImages').checked;
-        NSQ.prefs.hideStatus = !$('showStatus').checked;
-        NSQ.prefs.wheelZoomEnabled = $('wheelZoomEnabled').checked;
-        NSQ.prefs.fullZoomPrimary = $('primaryZoomMethod-menu').value == 'full';
+        //NSQ.prefs.zoomImages = lib.$('zoomImages').checked;
+        NSQ.prefs.hideStatus = !lib.lib.$('showStatus').checked;
+        NSQ.prefs.wheelZoomEnabled = lib.lib.$('wheelZoomEnabled').checked;
+        NSQ.prefs.fullZoomPrimary = lib.lib.$('primaryZoomMethod-menu').value == 'full';
 
         // Color tab
-        for (let [id, defcolor] of items(NSQ.prefs.defaultColors))
-            NSQ.prefs[id] = $(id).checked ? $(id).parentNode.childNodes[1].color : '0';
-        NSQ.prefs.colorBackgroundImages = $('colorBackgroundImages').checked;
-        NSQ.prefs.linksUnderline = $('linksUnderline').checked;
+        for (let [id, defcolor] of lib.items(NSQ.prefs.defaultColors))
+            NSQ.prefs[id] = lib.lib.$(id).checked ? lib.lib.$(id).parentNode.childNodes[1].color : '0';
+        NSQ.prefs.colorBackgroundImages = lib.lib.$('colorBackgroundImages').checked;
+        NSQ.prefs.linksUnderline = lib.lib.$('linksUnderline').checked;
 
         // Exceptions tab
-        var listbox = $('exceptionsList');
+        var listbox = lib.lib.$('exceptionsList');
         var exceptions = null;
         if (listbox.getUserData('nosquint.changed')) {
             exceptions = [];
@@ -103,8 +106,8 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
             }
         }
         NSQ.prefs.saveAll(exceptions);
-        if (NSQ.storage.dialogs.site)
-            NSQ.storage.dialogs.site.discoverSiteNameChange();
+        if (lib.storage.dialogs.site)
+            lib.storage.dialogs.site.discoverSiteNameChange();
         this.finalize();
     };
 
@@ -114,7 +117,7 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
      */
     this.forgetMonthsChecked = function() {
         // Months optionlist is disabled if "Forget settings" checkbox isn't checked.
-        $('siteForget-menu').disabled = !$('siteForget').checked;
+        lib.lib.$('siteForget-menu').disabled = !lib.lib.$('siteForget').checked;
     };
 
 
@@ -128,13 +131,13 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
             // Happens on initial dialog open before init()
             return;
         // Enable nested options under "Remember zoom" radiobutton if the radio is active.
-        var disabled = $('rememberSites').selectedIndex == 1;
-        this.enableTree($('siteForget-box'), disabled);
+        var disabled = lib.lib.$('rememberSites').selectedIndex == 1;
+        this.enableTree(lib.$('siteForget-box'), disabled);
     };
 
     // Enables or disables all elements in the given hierarchy
     this.enableTree = function(node, state) {
-        for (let child in iter(node.childNodes)) {
+        for (let child in lib.iter(node.childNodes)) {
             if (child.disabled === undefined || child.disabled == true || (state && child.disabled == false))
                 child.disabled = state;
             if (child.childNodes.length)
@@ -161,12 +164,12 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
      */
 
     this.exceptionsListAdd = function(pattern, check_dupe) {
-        var listbox = $('exceptionsList');
+        var listbox = lib.lib.$('exceptionsList');
         // Strip URI scheme from pattern (if it exists)
         pattern = pattern.replace(/^\w+:\/\//, '');
 
         if (check_dupe) {
-            for (let node in iter(listbox.childNodes)) {
+            for (let node in lib.iter(listbox.childNodes)) {
                 if (node.childNodes[0].getAttribute('label') == pattern)
                     return;
             }
@@ -194,7 +197,7 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
 
     this.textPatternChange = function() {
         // Enable 'Add' button if the pattern input box isn't empty.
-        $('exceptionAdd-button').disabled = ($('pattern').value == '');
+        lib.lib.$('exceptionAdd-button').disabled = (lib.lib.$('pattern').value == '');
     };
 
     this.excListKeyPress = function(event) {
@@ -208,36 +211,36 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
 
     this.excListSelect = function() {
         // Edit/Remove buttons enabled when one of the listitems is selected.
-        var nsel = $('exceptionsList').selectedItems.length;
-        $('exceptionRemove-button').disabled = (nsel == 0);
-        $('exceptionEdit-button').disabled = (nsel != 1);
+        var nsel = lib.lib.$('exceptionsList').selectedItems.length;
+        lib.lib.$('exceptionRemove-button').disabled = (nsel == 0);
+        lib.lib.$('exceptionEdit-button').disabled = (nsel != 1);
     };
 
     this.buttonCopyFromURL = function() {
         // Copy button is hidden unless this.url is set.
-        $('pattern').value = this.url;
+        lib.lib.$('pattern').value = this.url;
         this.textPatternChange();
     };
 
     this.buttonAddException = function() {
-        this.exceptionsListAdd($('pattern').value, true);
-        $('pattern').value = '';
+        this.exceptionsListAdd(lib.$('pattern').value, true);
+        lib.lib.$('pattern').value = '';
         this.textPatternChange();
     };
 
     this.buttonEditException = function() {
-        var listcell = $('exceptionsList').selectedItem.childNodes[0];
+        var listcell = lib.lib.$('exceptionsList').selectedItem.childNodes[0];
         var oldPattern = listcell.getAttribute('label');
-        var newPattern = popup('prompt', this.strings.editTitle, this.strings.editPrompt, oldPattern);
+        var newPattern = lib.popup('prompt', this.strings.editTitle, this.strings.editPrompt, oldPattern);
         if (newPattern != null && newPattern != oldPattern) {
             listcell.setAttribute('label', newPattern);
-            $('exceptionsList').setUserData('nosquint.changed', true, null);
+            lib.lib.$('exceptionsList').setUserData('nosquint.changed', true, null);
         }
     };
 
     this.buttonRemoveException = function() {
         // Listbox is multi-select capable; remove all selected items.
-        var listbox = $('exceptionsList');
+        var listbox = lib.lib.$('exceptionsList');
         while (listbox.selectedItems.length)
             listbox.removeChild(listbox.selectedItems[0]);
         listbox.setUserData('nosquint.changed', true, null);

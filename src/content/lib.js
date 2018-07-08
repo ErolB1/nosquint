@@ -1,53 +1,58 @@
-(function() {
-    // Shorter alias
-    this.NSQ = NoSquint;
+"use strict";
 
-    Components.utils.import("resource://gre/modules/PrivateBrowsingUtils.jsm");
+var EXPORTED_SYMBOLS = ["lib"]
 
-    /* Setup global (spans all windows) storage object.  The storage object
-     * exists once, and is referenced for each window.  (In contrast, doing
-     * Application.storage.set('foo', [1,2]) will store a copy of the list.)
-     */
-    this.storage = Application.storage.get('nosquint-global', null);
-    if (this.storage === null) {
-        // Initialize global defaults.
-        this.storage = {
-            disabled: false,
-            quitting: false,
-            origSiteSpecific: null,
-            dialogs: {},
-            NoSquint: NoSquint
-        };
-        Application.storage.set('nosquint-global', this.storage);
-    }
+var lib = {
+    init: function () {
+        Components.utils.import("resource://gre/modules/PrivateBrowsingUtils.jsm");
 
-    this.is30 = (function() {
+        /* Setup global (spans all windows) storage object.  The storage object
+         * exists once, and is referenced for each window.  (In contrast, doing
+         * Application.storage.set('foo', [1,2]) will store a copy of the list.)
+         */
+        this.storage = Application.storage.get('nosquint-global', null);
+        if (this.storage === null) {
+            // Initialize global defaults.
+            this.storage = {
+                disabled: false,
+                quitting: false,
+                origSiteSpecific: null,
+                dialogs: {},
+                NoSquint: NoSquint
+            };
+            Application.storage.set('nosquint-global', this.storage);
+        }
+    },
+
+    is30: function() {
         let is30 = Application.version.substr(0, 4) == '3.0.';
         return () => is30;
-    })();
+    },
 
-    this.is36 = (function() {
+    is36: function() {
         let is36 = Application.version.substr(0, 4) == '3.6.';
         return () => is36;
-    })();
+    },
 
-    this.is3x = (function() {
+    is3x: function() {
         let is3x = parseInt(Application.version.split('.')[0]) < 4;
         return () => is3x;
-    })();
+    },
 
-    this.is40 = (function() {
+    is40: function() {
         let is40 = parseInt(Application.version.split('.')[0]) >= 4;
         return () => is40;
-    })();
+    },
 
-    this.$ = function(id, doc) {
-        if (doc === undefined)
+    $: function(id, doc) {
+        if (doc === undefined) {
             doc = document;
+        }
+            
         return doc.getElementById(id);
-    };
+    },
 
-    this.isWindowPrivate = function(win) {
+    isWindowPrivate: function(win) {
         if (win === undefined)
             win = window;
         try {
@@ -60,13 +65,13 @@
             // thrown here and assume the window isn't private if it throws.
             return false;
         }
-    };
+    },
 
     // Loads a string bundle and returns a key -> value map.
-    this.getStringBundle = function(name) {
+    getStringBundle: function(name) {
         var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                         .getService(Components.interfaces.nsIStringBundleService)
-                         .createBundle('chrome://nosquint/locale/' + name + '.properties');
+            .getService(Components.interfaces.nsIStringBundleService)
+            .createBundle('chrome://nosquint/locale/' + name + '.properties');
         var strings = {}
         var e = bundle.getSimpleEnumeration();
         while (e.hasMoreElements()) {
@@ -74,33 +79,34 @@
             strings[str.key] = str.value;
         }
         return strings;
-    }
+    },
 
-    this.strings = this.getStringBundle('overlay');
+    strings: function() {
+        return getStringBundle('overlay')
+    },
 
     /* Returns a list of lines from a URL (such as chrome://).
      */
-    this.readLines = function(aURL) {
-      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService);
-      var scriptableStream = Components.classes["@mozilla.org/scriptableinputstream;1"]
-                             .getService(Components.interfaces.nsIScriptableInputStream);
+    readLines: function(aURL) {
+        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+            .getService(Components.interfaces.nsIIOService);
+        var scriptableStream = Components.classes["@mozilla.org/scriptableinputstream;1"]
+            .getService(Components.interfaces.nsIScriptableInputStream);
 
-      var channel = ioService.newChannel(aURL, null, null);
-      var input = channel.open();
-      scriptableStream.init(input);
-      var str = scriptableStream.read(input.available());
-      scriptableStream.close();
-      input.close();
-      return str.split("\n");
-    };
-
+        var channel = ioService.newChannel(aURL, null, null);
+        var input = channel.open();
+        scriptableStream.init(input);
+        var str = scriptableStream.read(input.available());
+        scriptableStream.close();
+        input.close();
+        return str.split("\n");
+    },
 
     /* Given a FQDN, returns only the base domain, and honors two-level TLDs.
      * So for example, www.foo.bar.com returns bar.com, or www.foo.bar.co.uk
      * returns bar.co.uk.
      */
-    this.getBaseDomainFromHost = function(host) {
+    getBaseDomainFromHost: function(host) {
         if (this.storage.TLDs === undefined) {
             // First window opened, so parse from stored list, which is
             // borrowed from http://george.surbl.org/two-level-tlds
@@ -120,18 +126,17 @@
         else if (this.storage.TLDs[level2])
             return level3;
         return level2;
-    };
-
+    },
 
     // XXX: don't forget to disable this for releases.
-    this.debug = function(msg) {
+    debug: function(msg) {
         // dump("[nosquint] " + msg + "\n");
-    };
+    },
 
     /* This function is called a lot, so we take some care to optimize for the
      * common cases.
      */
-    this.isChrome = function(browser) {
+    isChrome: function(browser) {
         var document = browser.docShell.document;
 
         // this.debug('isChrome(): URL=' + document.URL + ', spec=' + browser.currentURI.spec + ', contentType=' + document.contentType);
@@ -159,23 +164,23 @@
         // Less common cases that we'll cover with the more expensive regexp.
         return document.contentType.search(/^text\/(plain|css|xml|javascript)/) != 0;
         //return document.contentType.search(/^text\/(plain|css|xml|javascript)|image\//) != 0;
-    };
+    },
 
-    this.isImage = function(browser) {
+    isImage: function(browser) {
         return browser.docShell.document.contentType.search(/^image\//) == 0;
-    };
+    },
 
-    this.getImage = function(doc) {
+    getImage: function(doc) {
         // Not yet.
         /*
         var svg = doc.getElementsByTagName('svg');
         if (svg.length > 0)
             return svg[0];
         */
-        return doc.body ? doc.body.firstChild : null;
-    };
+       return doc.body ? doc.body.firstChild : null;
+    },
 
-    this.foreachNSQ = (function(self) {
+    forEachNSQ: (function(self) {
         var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                            .getService(Components.interfaces.nsIWindowMediator);
         return function(callback) {
@@ -196,10 +201,9 @@
             }
             return win;
         };
-    })(this);
+    })(this),
 
-
-    this.popup = function(type, title, text, value) {
+    popup: function(type, title, text, value) {
         var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                       .getService(Components.interfaces.nsIPromptService);
         if (type == 'confirm')
@@ -214,11 +218,14 @@
             return data.value;
         }
         return null;
-    };
+    },
 
+    storage: function() {
+        Application.storage.get('nosquint-global', null)
+    },
 
     // Pythonic general purpose iterators.
-    this.iter = function() {
+    iter: function() {
         for (let i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
             // duck typing
@@ -230,38 +237,37 @@
                     yield key
             }
         }
-    };
+    },
 
-    this.items = function() {
+    items: function() {
         for (let i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
             for (let [key, value] of Iterator(arg))
                 yield [key, value];
         }
-    };
+    },
 
-    this.values = function() {
+    values: function() {
         for (let i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
             for (let [key, value] of Iterator(arg))
                 yield value;
         }
-    };
+    },
 
-    this.enumerate = function(o) {
+    enumerate: function(o) {
         var n = 0;
         for (let i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
             for (let value in this.iter(arg))
                 yield [n++, value];
         }
-    };
+    },
 
-    this.defer = function(delay, callback) {
+    defer: function(delay, callback) {
         var timer = setTimeout(function() {
             callback();
             clearTimeout(timer);
         }, delay);
-    };
-
-}).apply(NoSquint);
+    }
+}

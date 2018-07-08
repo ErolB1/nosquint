@@ -6,6 +6,8 @@
  */
 NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
 
+    Components.utils.import("chrome://nosquint/content/lib.js", this);
+
     /* Handlers for toolar buttons */
     this.buttonEnlarge = function(event) {
         event.shiftKey ? NSQ.cmd.enlargeSecondary() : NSQ.cmd.enlargePrimary();
@@ -57,7 +59,7 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
 
     this.enlargeTextZoom = function() {
         var browser = getBrowser().mCurrentBrowser;
-        if (isImage(browser)) {
+        if (lib.isImage(browser)) {
             NSQ.cmd.enlargeFullZoom();
             return;
         }
@@ -69,7 +71,7 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
 
     this.reduceTextZoom = function() {
         var browser = getBrowser().mCurrentBrowser;
-        if (isImage(browser)) {
+        if (lib.isImage(browser)) {
             NSQ.cmd.reduceFullZoom();
             return;
         }
@@ -81,7 +83,7 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
 
     this.enlargeFullZoom = function() {
         var browser = getBrowser().mCurrentBrowser;
-        if (isImage(browser) && browser.getUserData('nosquint').fit)
+        if (lib.isImage(browser) && browser.getUserData('nosquint').fit)
             return;
         var mdv = browser.markupDocumentViewer;
         mdv.fullZoom = Math.round(mdv.fullZoom * 100.0 + NSQ.prefs.zoomIncrement) / 100.0;
@@ -91,7 +93,7 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
 
     this.reduceFullZoom = function() {
         var browser = getBrowser().mCurrentBrowser;
-        if (isImage(browser) && browser.getUserData('nosquint').fit)
+        if (lib.isImage(browser) && browser.getUserData('nosquint').fit)
             return;
         var mdv = browser.markupDocumentViewer;
         mdv.fullZoom = Math.round(mdv.fullZoom * 100.0 - NSQ.prefs.zoomIncrement) / 100.0;
@@ -149,25 +151,25 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
         /* Setup the context menu according to the current browser tab: the
          * site name is set, and the appropriate radio menuitems get selected.
          */
-        var popup = $('nosquint-status-popup');
+        var popup = lib.lib.$('nosquint-status-popup');
         var browser = gBrowser.selectedBrowser;
         var site = browser.getUserData('nosquint').site;
 
         // Hide all but the last menuitem if there is no site
-        for (let [n, child] of enumerate(popup.childNodes))
+        for (let [n, child] of lib.enumerate(popup.childNodes))
             child.style.display = (site || n == popup.childNodes.length-1) ? '' : 'none';
 
-        var popup_text = $('nosquint-status-popup-text');
-        var popup_full = $('nosquint-status-popup-full');
+        var popup_text = lib.lib.$('nosquint-status-popup-text');
+        var popup_full = lib.lib.$('nosquint-status-popup-full');
 
         var current_text = Math.round(browser.markupDocumentViewer.textZoom * 100);
         var current_full = Math.round(browser.markupDocumentViewer.fullZoom * 100);
 
         popup.childNodes[0].label = site;
 
-        for (let child in iter(popup_text.childNodes))
+        for (let child in lib.iter(popup_text.childNodes))
             child.setAttribute('checked', child.label.replace(/%/, '') == current_text);
-        for (let child in iter(popup_full.childNodes))
+        for (let child in lib.iter(popup_full.childNodes))
             child.setAttribute('checked', child.label.replace(/%/, '') == current_full);
 
         //popup.openPopupAtScreen(event.screenX, event.screenY, true);
@@ -183,7 +185,7 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
         if (!browser.getUserData('nosquint').site)
             // Chrome
             return;
-        var dlg = NSQ.storage.dialogs.site;
+        var dlg = lib.storage.dialogs.site;
         if (dlg)
             dlg.setBrowser(NSQ.browser, browser);
         else
@@ -193,7 +195,7 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
 
     /* Opens global prefs dialog or focuses it if it's already open. */
     this.openGlobalSettings = function(browser) {
-        var dlg = NSQ.storage.dialogs.global;
+        var dlg = lib.storage.dialogs.global;
         if (dlg) {
             dlg.focus();
             return;
@@ -210,12 +212,12 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.showToolbarPanel = function() {
-        var panel = $('nosquint-toolbar-buttons-notify');
-        var anchor = $('zoom-out-button');
+        var panel = lib.lib.$('nosquint-toolbar-buttons-notify');
+        var anchor = lib.lib.$('zoom-out-button');
         if (!anchor)
-            anchor = $('nosquint-button-reduce');
+            anchor = lib.lib.$('nosquint-button-reduce');
         panel.openPopup(anchor, 'after_start', 0, 0, false, false, null);
-        defer(5000, function() {
+        lib.lib.defer(5000, function() {
             panel.hidePopup();
         });
     };
