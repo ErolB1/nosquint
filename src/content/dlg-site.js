@@ -77,7 +77,7 @@ NoSquint.dialogs.site = NoSquint.ns(function() { with (NoSquint) {
         $('text-zoom-slider').value = text;
         $('full-zoom-slider').value = full;
 
-        for (let [id, defcolor] in items(NSQ.browser.prefs.defaultColors)) {
+        for (let [id, defcolor] of items(NSQ.browser.prefs.defaultColors)) {
             $(id).parentNode.childNodes[1].color = (!style || style[id] == '0' ? defcolor : style[id]);
             $(id).checked = Boolean(style && style[id] && style[id] != '0');
             this.colorChecked.apply($(id));

@@ -235,7 +235,7 @@
     this.items = function() {
         for (let i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
-            for (let [key, value] in Iterator(arg))
+            for (let [key, value] of Iterator(arg))
                 yield [key, value];
         }
     };
@@ -243,7 +243,7 @@
     this.values = function() {
         for (let i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
-            for (let [key, value] in Iterator(arg))
+            for (let [key, value] of Iterator(arg))
                 yield value;
         }
     };

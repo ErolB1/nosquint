@@ -219,7 +219,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         var full_zoom_primary = NSQ.prefs.fullZoomPrimary;
 
         if (!$('nosquint-view-menu-settings')) {
-            for (let [i, child] in enumerate(popup.childNodes)) {
+            for (let [i, child] of enumerate(popup.childNodes)) {
                 if (child.id == 'toggle_zoom')
                     child.hidden = true;
                 if (child.nodeName != 'menuitem' || child.command === undefined ||
@@ -298,7 +298,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         if (!style.linksUnvisited && !style.linksVisited)
             unvis.value = 'Site Controlled';
         else {
-            for (let [attr, elem] in items({'linksUnvisited': unvis, 'linksVisited': vis})) {
+            for (let [attr, elem] of items({'linksUnvisited': unvis, 'linksVisited': vis})) {
                 if (style[attr]) {
                     elem.value = attr.replace('links', '');
                     elem.style.color = style[attr];

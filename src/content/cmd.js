@@ -154,7 +154,7 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
         var site = browser.getUserData('nosquint').site;
 
         // Hide all but the last menuitem if there is no site
-        for (let [n, child] in enumerate(popup.childNodes))
+        for (let [n, child] of enumerate(popup.childNodes))
             child.style.display = (site || n == popup.childNodes.length-1) ? '' : 'none';
 
         var popup_text = $('nosquint-status-popup-text');

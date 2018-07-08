@@ -26,7 +26,7 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
         this.rememberSelect();
 
         // Color tab
-        for (let [id, defcolor] in items(NSQ.prefs.defaultColors)) {
+        for (let [id, defcolor] of items(NSQ.prefs.defaultColors)) {
             var color = NSQ.prefs[id];
             $(id).parentNode.childNodes[1].color = (color == '0' ? defcolor : color);
             $(id).addEventListener('CheckboxStateChange', this.colorChecked, false);
@@ -86,7 +86,7 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
         NSQ.prefs.fullZoomPrimary = $('primaryZoomMethod-menu').value == 'full';
 
         // Color tab
-        for (let [id, defcolor] in items(NSQ.prefs.defaultColors))
+        for (let [id, defcolor] of items(NSQ.prefs.defaultColors))
             NSQ.prefs[id] = $(id).checked ? $(id).parentNode.childNodes[1].color : '0';
         NSQ.prefs.colorBackgroundImages = $('colorBackgroundImages').checked;
         NSQ.prefs.linksUnderline = $('linksUnderline').checked;

@@ -472,7 +472,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
 
         var remove = [];
         var now = new Date();
-        for (let [site, settings] in items(this.sites)) {
+        for (let [site, settings] of items(this.sites)) {
             if (!settings)
                 continue
             var [text, timestamp, counter, full] = settings;
@@ -594,7 +594,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             return;
         var t0 = new Date().getTime();
         var sites = [];
-        for (let [site, settings] in items(this.sites)) {
+        for (let [site, settings] of items(this.sites)) {
             if (!settings)
                 continue;
             sites.push(site + "=" + settings.join(','));
@@ -635,7 +635,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
 
     this.cloneSites = function() {
         var sites = {};
-        for (let [site, values] in Iterator(this.sites))
+        for (let [site, values] of Iterator(this.sites))
             sites[site] = values.slice();
         return sites;
     };
@@ -765,7 +765,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
         var newstyle = { enabled: false };
         var boolDefaults = {colorBackgroundImages: false, linksUnderline: false};
         var isDefault = (o, attr) => !o || !o[attr] || o[attr] in ['0', false];
-        for (let [key, value] in items(this.defaultColors, boolDefaults)) {
+        for (let [key, value] of items(this.defaultColors, boolDefaults)) {
             newstyle[key] = isDefault(style, key) ? (isDefault(this, key) ? null : this[key]) : style[key];
             newstyle.enabled = newstyle.enabled || Boolean(newstyle[key]);
         }
