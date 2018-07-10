@@ -167,7 +167,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
         // rememberSites)
         var prefs = [
             'fullZoomLevel', 'textZoomLevel', 'zoomIncrement', 'wheelZoomEnabled', 'hideStatus',
-            'action', 'sitesSaveDelay', 'rememberSites', 'exceptions', 'forgetMonths',
+            'action', 'sitesSaveDelay', 'rememberSites', 'debugMode', 'exceptions', 'forgetMonths',
             'fullZoomPrimary', 'wheelZoomInvert', 'zoomImages', 'colorText', 'colorBackground',
             'colorBackgroundImages', 'linksUnvisited', 'linksVisited', 'linksUnderline'
         ];
@@ -257,6 +257,10 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
                     lib.storage.dialogs.site.updateWarning();
                 // TODO: if false, remove stored sites settings immediately, but keep
                 // in memory until end of session.
+                break;
+
+            case 'debugMode':
+                this.debugMode = branchNS.getBoolPref('debugMode');
                 break;
 
             case 'sitesSaveDelay':
@@ -456,7 +460,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             if (exc_host.search(':') == -1)
                 re_host += '(:\\d+)';
 
-            console.debug("regexpify(): exc_host=" + exc_host + ", re_host=" + re_host + ", sub_host=" + sub_host + ", exc_path=" + exc_path + ", re_path=" + re_path + ", sub_path=" + sub_path);
+            debug("regexpify(): exc_host=" + exc_host + ", re_host=" + re_host + ", sub_host=" + sub_host + ", exc_path=" + exc_path + ", re_path=" + re_path + ", sub_path=" + sub_path);
             exceptions.push([origexc, len_host * 1000 + len_path, exc_host, re_host, sub_host, re_path, sub_path]);
         }
         // Sort the exceptions such that the ones with the highest weights
@@ -483,7 +487,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             var prune = (age > this.forgetMonths * 30*24*60*60*1000);
             if (prune)
                 remove.push(site);
-            console.debug("pruneSites(): site=" + site + ", age=" + Math.round(age/1000/60/60/24) + " days, prune=" + prune);
+            debug("pruneSites(): site=" + site + ", age=" + Math.round(age/1000/60/60/24) + " days, prune=" + prune);
         }
         if (remove.length) {
             for (let site in lib.iter(remove))
@@ -541,7 +545,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
         if (this.isSiteRecordDefault(record))
             delete this.sites[site];
 
-        console.debug('updateSiteList(): site=' + site + ', record=' + record);
+        debug('updateSiteList(): site=' + site + ', record=' + record);
         this.queueSaveSiteList(true);
     };
 
@@ -582,7 +586,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
          * changes the zoom several times in a short period of time, we aren't
          * needlessly iterating over the sites array.
          */
-        console.debug("queueSaveSiteList(): delay=" + this.saveDelay);
+        debug("queueSaveSiteList(): delay=" + this.saveDelay);
         saveTimer = this.winFunc('setTimeout', () => NSQ.prefs.saveSiteList(flush), this.saveDelay);
     };
 
@@ -612,7 +616,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
         branchNS.setCharPref('sites', sites.join(' '));
         if (flush)
             this.save();
-        console.debug("saveSiteList(): took: " + (new Date().getTime() - t0) + "ms, flush=" + flush);
+        debug("saveSiteList(): took: " + (new Date().getTime() - t0) + "ms, flush=" + flush);
         this.winFunc('clearTimeout', saveTimer);
         saveTimer = null;
     };
@@ -702,7 +706,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             var m1 = uri_host.match(new RegExp('(' + re_host + ')$'));
             var m2 = uri_path.match(new RegExp('^(' + re_path + ')'));
 
-            //console.debug("getSiteFromURI(): host=" + uri_host + ", port=" + uri_port+ ", path=" + uri_path + ", base=" + base + " === exception info: re_host=" + re_host + ", sub_host=" + sub_host + ", re_path=" + re_path + ", sub_path=" + sub_path + " === results: m1=" + m1 + ", m2=" + m2);
+            //debug("getSiteFromURI(): host=" + uri_host + ", port=" + uri_port+ ", path=" + uri_path + ", base=" + base + " === exception info: re_host=" + re_host + ", sub_host=" + sub_host + ", re_path=" + re_path + ", sub_path=" + sub_path + " === results: m1=" + m1 + ", m2=" + m2);
 
             if (!m1 || !m2)
                 // No match
@@ -714,7 +718,7 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             break;
         }
         var t1 = new Date().getTime();
-        console.debug("getSiteFromURI(): took " + (t1-t0) + " ms: " + (match ? match : base) + ", uri=" + URI.spec);
+        debug("getSiteFromURI(): took " + (t1-t0) + " ms: " + (match ? match : base) + ", uri=" + URI.spec);
 
         return match ? match : base;
     };

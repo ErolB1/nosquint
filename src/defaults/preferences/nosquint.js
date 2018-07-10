@@ -10,6 +10,7 @@ pref("extensions.nosquint.wheelZoomEnabled", true);
 pref("extensions.nosquint.wheelZoomInvert", false);
 pref("extensions.nosquint.hideStatus", false);
 pref("extensions.nosquint.forgetMonths", 6);
+pref("extensions.nosquint.debugMode", false);
 pref("extensions.nosquint.fullZoomPrimary", true);
 pref("extensions.nosquint.prefsVersion", '0');
 pref("extensions.nosquint.colorText", '0');

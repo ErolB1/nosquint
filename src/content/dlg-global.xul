@@ -55,6 +55,13 @@
                         </radiogroup>
                     </groupbox>
                 </vbox>
+                <vbox flex="1">
+                    <groupbox id="misc">
+                        <caption label="&ns.pref.misc.caption;" />
+                        <checkbox id="debugMode" label="&ns.pref.misc.debug.label;"
+                                  checked="false" />
+                    </groupbox>
+                </vbox>
             </tabpanel>
 
             <!-- Zooming Tab -->
