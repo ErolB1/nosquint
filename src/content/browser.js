@@ -61,8 +61,8 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.hookZoomButtonsForReset = function() {
-        if (lib.lib.$('zoom-out-button')) {
-            lib.lib.$('zoom-out-button').onclick = lib.lib.$('zoom-in-button').onclick =
+        if (lib.$('zoom-out-button')) {
+            lib.$('zoom-out-button').onclick = lib.$('zoom-in-button').onclick =
                 function(event) {
                     if (event.button == 1)
                         NoSquint.cmd.buttonReset(event);
@@ -77,9 +77,9 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.hookEventListeners = function() {
-        if (lib.lib.$('nosquint-status')) {
+        if (lib.$('nosquint-status')) {
             // Add a scroll event listener to zoom on scroll
-            lib.lib.$('nosquint-status').addEventListener('DOMMouseScroll', function(event) {
+            lib.$('nosquint-status').addEventListener('DOMMouseScroll', function(event) {
                 NSQ.cmd.statusPanelScroll(event);
             }, false);
         }
@@ -88,7 +88,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
     /* Turns on the Addon Bar (Firefox 4)
      */
     this.enableAddonBar = function() {
-        var bar = lib.lib.$('addon-bar');
+        var bar = lib.$('addon-bar');
         setToolbarVisibility(bar, true);
     };
 
@@ -98,11 +98,11 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      * toolbar here the first button was found.
      */
     this.checkToolbar = function() {
-        var [ver, button] = [4, lib.lib.$('zoom-controls')];
+        var [ver, button] = [4, lib.$('zoom-controls')];
         if (!button)
-            var [ver, button] = [3, lib.lib.$('nosquint-button-reduce')];
+            var [ver, button] = [3, lib.$('nosquint-button-reduce')];
         if (!button)
-            var [ver, button] = [3, lib.lib.$('nosquint-button-enlarge')];
+            var [ver, button] = [3, lib.$('nosquint-button-enlarge')];
         if (!button)
             return [0, null];
         else {
@@ -129,14 +129,14 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         }
 
         if (action & 2) {
-            remove(lib.lib.$('nosquint-button-reduce'));
-            remove(lib.lib.$('nosquint-button-enlarge'));
-            remove(lib.lib.$('nosquint-button-reset'));
-            remove(lib.lib.$('zoom-controls'));
+            remove(lib.$('nosquint-button-reduce'));
+            remove(lib.$('nosquint-button-enlarge'));
+            remove(lib.$('nosquint-button-reset'));
+            remove(lib.$('zoom-controls'));
         }
 
         if (action & 1) {
-            var navbar = lib.lib.$('nav-bar');
+            var navbar = lib.$('nav-bar');
             var set = navbar.currentSet.split(',');
             if (where === undefined || where === null) {
                 where = set.indexOf('search-container') + 1;
@@ -223,7 +223,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         var popup = lib.$('viewFullZoomMenu').childNodes[0];
         var full_zoom_primary = NoSquint.prefs.fullZoomPrimary;
 
-        if (!lib.lib.$('nosquint-view-menu-settings')) {
+        if (!lib.$('nosquint-view-menu-settings')) {
             for (let [i, child] of lib.enumerate(popup.childNodes)) {
                 if (child.id == 'toggle_zoom')
                     child.hidden = true;
@@ -275,14 +275,14 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         var text = Math.round(browser.markupDocumentViewer.textZoom * 100);
         var full = Math.round(browser.markupDocumentViewer.fullZoom * 100);
 
-        var e = lib.lib.$('nosquint-status');
+        var e = lib.$('nosquint-status');
         // updateStatusTooltip() won't be called unless site is not null.
-        lib.lib.$('nosquint-status-tooltip-site').value = site.replace(/%20/g, ' ');
-        lib.lib.$('nosquint-status-tooltip-full').value = full + '%';
-        lib.lib.$('nosquint-status-tooltip-text').value = text + '%';
+        lib.$('nosquint-status-tooltip-site').value = site.replace(/%20/g, ' ');
+        lib.$('nosquint-status-tooltip-full').value = full + '%';
+        lib.$('nosquint-status-tooltip-text').value = text + '%';
 
         var style = this.getStyleForBrowser(browser);
-        var label = lib.lib.$('nosquint-status-tooltip-textcolor');
+        var label = lib.$('nosquint-status-tooltip-textcolor');
         if (style.colorBackground || style.colorText) {
             label.style.padding = '2px 10px';
             label.style.border = '1px solid black';
@@ -294,8 +294,8 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         label.style.backgroundColor = style.colorBackground || 'inherit';
         label.value = (style.colorText || style.colorBackground) ? 'Sample' : 'Site Controlled';
 
-        var vis = lib.lib.$('nosquint-status-tooltip-vis-link');
-        var unvis = lib.lib.$('nosquint-status-tooltip-unvis-link');
+        var vis = lib.$('nosquint-status-tooltip-vis-link');
+        var unvis = lib.$('nosquint-status-tooltip-unvis-link');
         unvis.value = vis.value = '';
         vis.style.color = vis.style.textDecoration = 'inherit';
         unvis.style.color = unvis.style.textDecoration = 'inherit';
@@ -321,7 +321,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         var browser = gBrowser.selectedBrowser;
         var site = browser.getUserData('nosquint').site;
         // Disable/enable context menu item.
-        lib.lib.$('nosquint-menu-settings').disabled = (site === null);
+        lib.$('nosquint-menu-settings').disabled = (site === null);
 
         if (updateStatusTimer) {
             clearTimeout(updateStatusTimer);
@@ -332,7 +332,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             // Pref indicates we're hiding status panel, no sense in updating.
             return;
 
-        var e = lib.lib.$('nosquint-status');
+        var e = lib.$('nosquint-status');
         if (site) {
             var text = Math.round(browser.markupDocumentViewer.textZoom * 100);
             var full = Math.round(browser.markupDocumentViewer.fullZoom * 100);
@@ -343,11 +343,11 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             else
                 e.label = text + '%' + (full == full_default ? '' : (' / ' + full + '%'));
 
-            lib.lib.$('nosquint-status-tooltip').style.display = '';
+            lib.$('nosquint-status-tooltip').style.display = '';
             e.style.fontStyle = e.style.opacity = 'inherit';
             tooltipDirty = true;
         } else {
-            lib.lib.$('nosquint-status-tooltip').style.display = 'none';
+            lib.$('nosquint-status-tooltip').style.display = 'none';
             e.label = 'N/A';
             /* Lame: the documentation for statusbarpanel says there is a
              * disabled attribute.  The DOM Inspector says otherwise.  So we

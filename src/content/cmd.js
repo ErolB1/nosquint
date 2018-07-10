@@ -151,7 +151,7 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
         /* Setup the context menu according to the current browser tab: the
          * site name is set, and the appropriate radio menuitems get selected.
          */
-        var popup = lib.lib.$('nosquint-status-popup');
+        var popup = lib.$('nosquint-status-popup');
         var browser = gBrowser.selectedBrowser;
         var site = browser.getUserData('nosquint').site;
 
@@ -159,8 +159,8 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
         for (let [n, child] of lib.enumerate(popup.childNodes))
             child.style.display = (site || n == popup.childNodes.length-1) ? '' : 'none';
 
-        var popup_text = lib.lib.$('nosquint-status-popup-text');
-        var popup_full = lib.lib.$('nosquint-status-popup-full');
+        var popup_text = lib.$('nosquint-status-popup-text');
+        var popup_full = lib.$('nosquint-status-popup-full');
 
         var current_text = Math.round(browser.markupDocumentViewer.textZoom * 100);
         var current_full = Math.round(browser.markupDocumentViewer.fullZoom * 100);
@@ -212,10 +212,10 @@ NoSquint.cmd = NoSquint.ns(function() { with (NoSquint) {
     };
 
     this.showToolbarPanel = function() {
-        var panel = lib.lib.$('nosquint-toolbar-buttons-notify');
-        var anchor = lib.lib.$('zoom-out-button');
+        var panel = lib.$('nosquint-toolbar-buttons-notify');
+        var anchor = lib.$('zoom-out-button');
         if (!anchor)
-            anchor = lib.lib.$('nosquint-button-reduce');
+            anchor = lib.$('nosquint-button-reduce');
         panel.openPopup(anchor, 'after_start', 0, 0, false, false, null);
         lib.lib.defer(5000, function() {
             panel.hidePopup();
