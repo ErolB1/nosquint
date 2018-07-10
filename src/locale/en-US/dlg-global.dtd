@@ -27,6 +27,9 @@
 <!ENTITY ns.pref.persistence.forget.month "Month">
 <!ENTITY ns.pref.persistence.sanitize.label "Erase NoSquint site history when Pale Moon clears private data">
 
+<!ENTITY ns.pref.misc.caption "Misc settings">
+<!ENTITY ns.pref.misc.debug.label "Debug mode enabled">
+
 <!ENTITY ns.pref.colors.info "Enabling any of the color options below overrides the default for all pages.">
 <!ENTITY ns.pref.colors.colors.caption "Text and Background">
 <!ENTITY ns.pref.colors.colors.text.label "Text">

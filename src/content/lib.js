@@ -122,10 +122,10 @@
         return level2;
     };
 
-
-    // XXX: don't forget to disable this for releases.
     this.debug = function(msg) {
-        // dump("[nosquint] " + msg + "\n");
+        if (this.NSQ.prefs.debugMode) {
+            console.debug("[NoSquint] " + msg + "\n");
+        }
     };
 
     /* This function is called a lot, so we take some care to optimize for the

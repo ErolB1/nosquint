@@ -51,7 +51,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                 // New document on the same site.
                 return;
 
-            console.debug("onLocationChange(): old=" + userData.site + ", new=" + site + ", uri=" + uri.spec);
+            debug("onLocationChange(): old=" + userData.site + ", new=" + site + ", uri=" + uri.spec);
             /* Update timestamp for site.  This isn't _quite_ perfect because
              * the timestamp is only updated for the first page load on that site
              * rather than the last.  But it should be good enough in practice, and
@@ -80,7 +80,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
         },
 
         onStateChange: function(progress, request, state, astatus) {
-            console.debug("LISTENER: request=" + request + ", state=" + state + ", status=" +
+            debug("LISTENER: request=" + request + ", state=" + state + ", status=" +
                 astatus + ", type=" + this.browser.docShell.document.contentType);
 
             /* Check the current content type against the content type we initially got.
@@ -89,7 +89,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
              */
             var contentType = this.browser.docShell.document.contentType;
             if (this.contentType != contentType) {
-                console.debug("onStateChange(): Content type did not match");
+                debug("onStateChange(): Content type did not match");
 
                 this.contentType = contentType;
                 var userData = this.browser.getUserData('nosquint');
@@ -104,14 +104,14 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                     // Was considered chrome, but now isn't.  Rezoom/style.
                     delete userData.site;
                     NSQ.browser.zoom(this.browser);
-                    console.debug("onStateChange(): Content Type was chrome, but now isn't.  Rezoom/style.");
+                    debug("onStateChange(): Content Type was chrome, but now isn't.  Rezoom/style.");
                     this.styleApplied = NSQ.browser.style(this.browser);
                 }
             } else if (state & STATE_TRANSFERRING) {
-                console.debug("onStateChange(): Recieved the STATE_TRANSFERRING bit");
+                debug("onStateChange(): Recieved the STATE_TRANSFERRING bit");
 
                 if (!this.zoomApplied) {
-                    console.debug("onStateChange: (Transferring) Zoom has not been applied; Zooming now.");
+                    debug("onStateChange: (Transferring) Zoom has not been applied; Zooming now.");
 
                     this.zoomApplied = true;
                     if (NSQ.browser.isPrivate) {
@@ -132,7 +132,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                 }
 
                 if (!this.styleApplied) {
-                    console.debug("onStateChange(): (Transferring) Style has not been applied; Styling now.");
+                    debug("onStateChange(): (Transferring) Style has not been applied; Styling now.");
 
                     if (!isChrome(this.browser) || isImage(this.browser)) {
                         this.styleApplied = NSQ.browser.style(this.browser);

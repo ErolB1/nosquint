@@ -13,6 +13,7 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
         $('siteForget-menu').value = NSQ.prefs.forgetMonths;
         $('siteForget').addEventListener('CheckboxStateChange', () => NSQ.dialogs.global.forgetMonthsChecked(), false);
         $('siteSanitize').checked = branchPI.getBoolPref('extensions-nosquint');
+        $('debugMode').checked = NSQ.prefs.debugMode;
 
         // Zooming tab
         $('fullZoomLevel').value = NSQ.prefs.fullZoomLevel;
@@ -73,6 +74,7 @@ NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
         // General tab
         NSQ.prefs.rememberSites = !Boolean($('rememberSites').selectedIndex);
         NSQ.prefs.forgetMonths = $('siteForget').checked ? $('siteForget-menu').value : 0;
+        NSQ.prefs.debugMode = $('debugMode').checked
         branchPI.setBoolPref('extensions-nosquint', $('siteSanitize').checked);
 
         // Zooming tab
