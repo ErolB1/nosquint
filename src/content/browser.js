@@ -380,11 +380,11 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      */
     this.getZoomForBrowser = function(browser) {
         var site = browser.getUserData('nosquint').site;
-        debug('getZoomForBrowser(): site=' + site);
+        lib.debug('getZoomForBrowser(): site=' + site);
         if (site === undefined) {
             site = this.getSiteFromBrowser(browser);
             browser.getUserData('nosquint').site = site;
-            debug('getZoomForBrowser(): after getSiteFromBrowser(), site=' + site);
+            lib.debug('getZoomForBrowser(): after getSiteFromBrowser(), site=' + site);
         }
         // If the site dialog is open on the current site, get the zoom levels
         // from that instead as it should be treated as authoritative.
@@ -412,12 +412,12 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
 
         var text = Math.round(browser.markupDocumentViewer.textZoom * 100);
         var full = Math.round(browser.markupDocumentViewer.fullZoom * 100);
-        debug("saveCurrentZoom(): site=" + site);
+        lib.debug("saveCurrentZoom(): site=" + site);
         NSQ.prefs.updateSiteList(site, [text, full]);
     };
 
     this.attach = function(browser) {
-        debug('attach(): attached browser URI=' + browser.docShell.document.URL);
+        lib.debug('attach(): attached browser URI=' + browser.docShell.document.URL);
 
         var listener = new NSQ.interfaces.ProgressListener(browser);
         browser.addProgressListener(listener);
@@ -466,7 +466,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             //    [text, full] = [100, 100];
         }
 
-        debug("zoom(): text=" + text + ", full=" + full);
+        lib.debug("zoom(): text=" + text + ", full=" + full);
         if (text !== false)
             browser.markupDocumentViewer.textZoom = text / 100.0;
         if (full !== false)
@@ -474,7 +474,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
         if (browser == gBrowser.selectedBrowser)
             this.queueUpdateStatus();
         var t1 = Date.now();
-        debug("zoom(): took " + (t1-t0) + "ms");
+        lib.debug("zoom(): took " + (t1-t0) + "ms");
         return true;
     };
 
@@ -485,7 +485,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
      * have been opened prior to initialization.
      */
     this.zoomAll = function(site, attach) {
-        console.debug("zoomAll(): site=" + site + ", attach=" + attach);
+        lib.debug("zoomAll(): site=" + site + ", attach=" + attach);
         for (let browser in lib.iter(gBrowser.browsers)) {
             if (site && site != browser.getUserData('nosquint').site)
                 continue;
@@ -559,7 +559,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             if (!style)
                 style = NSQ.browser.getStyleForBrowser(browser);
 
-            debug("styler(): enabled=" + style.enabled + ", obj=" + styleobj);
+            lib.debug("styler(): enabled=" + style.enabled + ", obj=" + styleobj);
             if (style.enabled) {
                 if (!styleobj) {
                     styleobj = doc.createElementNS('http://www.w3.org/1999/xhtml', 'style');
@@ -598,7 +598,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
             // Initial styling; attach styler for document (or frameset).
             stylers.push(this.getDocumentStyler(browser, doc));
 
-        debug("style(): num stylers=" + stylers.length);
+        lib.debug("style(): num stylers=" + stylers.length);
         for (let i = stylers.length - 1; i >= 0; i--) {
             // A styler may raise if it applies to a dead object (which
             // happens if e.g. a DOM frame is dynamically removed).  If it

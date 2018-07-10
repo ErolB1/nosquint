@@ -129,7 +129,7 @@ var lib = {
     },
 
     debug: function(msg) {
-        if (this.NSQ.prefs.debugMode) {
+        if (NoSquint.prefs.debugMode) {
             console.debug("[NoSquint] " + msg + "\n");
         }
     },
@@ -140,7 +140,7 @@ var lib = {
     isChrome: function(browser) {
         var document = browser.docShell.document;
 
-        // this.debug('isChrome(): URL=' + document.URL + ', spec=' + browser.currentURI.spec + ', contentType=' + document.contentType);
+        debug('isChrome(): URL=' + document.URL + ', spec=' + browser.currentURI.spec + ', contentType=' + document.contentType);
         if (document.URL == undefined)
             return true;
 

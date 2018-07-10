@@ -54,7 +54,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                 // New document on the same site.
                 return;
 
-            debug("onLocationChange(): old=" + userData.site + ", new=" + site + ", uri=" + uri.spec);
+            lib.debug("onLocationChange(): old=" + userData.site + ", new=" + site + ", uri=" + uri.spec);
             /* Update timestamp for site.  This isn't _quite_ perfect because
              * the timestamp is only updated for the first page load on that site
              * rather than the last.  But it should be good enough in practice, and
@@ -83,7 +83,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
         },
 
         onStateChange: function(progress, request, state, astatus) {
-            debug("LISTENER: request=" + request + ", state=" + state + ", status=" +
+            lib.debug("LISTENER: request=" + request + ", state=" + state + ", status=" +
                 astatus + ", type=" + this.browser.docShell.document.contentType);
 
             /* Check the current content type against the content type we initially got.
@@ -92,7 +92,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
              */
             var contentType = this.browser.docShell.document.contentType;
             if (this.contentType != contentType) {
-                debug("onStateChange(): Content type did not match");
+                lib.debug("onStateChange(): Content type did not match");
 
                 this.contentType = contentType;
                 var userData = this.browser.getUserData('nosquint');
@@ -107,14 +107,14 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                     // Was considered chrome, but now isn't.  Rezoom/style.
                     delete userData.site;
                     NSQ.browser.zoom(this.browser);
-                    debug("onStateChange(): Content Type was chrome, but now isn't.  Rezoom/style.");
+                    lib.debug("onStateChange(): Content Type was chrome, but now isn't.  Rezoom/style.");
                     this.styleApplied = NSQ.browser.style(this.browser);
                 }
             } else if (state & STATE_TRANSFERRING) {
-                debug("onStateChange(): Recieved the STATE_TRANSFERRING bit");
+                lib.debug("onStateChange(): Recieved the STATE_TRANSFERRING bit");
 
                 if (!this.zoomApplied) {
-                    debug("onStateChange: (Transferring) Zoom has not been applied; Zooming now.");
+                    lib.debug("onStateChange: (Transferring) Zoom has not been applied; Zooming now.");
 
                     this.zoomApplied = true;
                     if (NSQ.browser.isPrivate) {
@@ -135,7 +135,7 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
                 }
 
                 if (!this.styleApplied) {
-                    debug("onStateChange(): (Transferring) Style has not been applied; Styling now.");
+                    lib.debug("onStateChange(): (Transferring) Style has not been applied; Styling now.");
 
                     if (!lib.isChrome(this.browser) || lib.isImage(this.browser)) {
                         this.styleApplied = NSQ.browser.style(this.browser);
