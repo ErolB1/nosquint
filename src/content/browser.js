@@ -138,7 +138,7 @@ NoSquint.browser = NoSquint.ns(function() { with (NoSquint) {
                 if (where == 0)
                     where = set.length;
             }
-            var ids = is3x() ? 'nosquint-button-reduce,nosquint-button-enlarge' : 'zoom-controls';
+            'zoom-controls';
             set = set.slice(0, where).concat(ids).concat(set.slice(where));
             navbar.currentSet = set.join(',');
             navbar.setAttribute('currentset', set.join(','));

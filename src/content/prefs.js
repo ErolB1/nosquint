@@ -897,15 +897,8 @@ NoSquint.prefs = NoSquint.ns(function() { with(NoSquint) {
             }
         };
 
-        if (is3x()) {
-            /* Because this.checkVersionChange() is called during init of NSQ.browser,
-             * and Application.extensions.get() is synchronous, defer this call.
-             */
-            defer(0, () => callback(Application.extensions.get('nosquint@urandom.ca')));
-        } else {
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
             AddonManager.getAddonByID('nosquint@urandom.ca', callback);
-        }
     };
     return this;
 }});

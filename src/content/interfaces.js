@@ -164,12 +164,8 @@ NoSquint.interfaces = NoSquint.ns(function() { with (NoSquint) {
             this._os = Components.classes["@mozilla.org/observer-service;1"]
                                  .getService(Components.interfaces.nsIObserverService);
             this._os.addObserver(this, "quit-application-granted", false);
-            if (is3x())
-                this._os.addObserver(this, "em-action-requested", false);
-            else {
-                Components.utils.import("resource://gre/modules/AddonManager.jsm");
-                AddonManager.addAddonListener(this);
-            }
+           Components.utils.import("resource://gre/modules/AddonManager.jsm");
+           AddonManager.addAddonListener(this);
         },
 
         unhook: function() {

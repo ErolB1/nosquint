@@ -1,7 +1,6 @@
 NoSquint.dialogs.global = NoSquint.ns(function() { with (NoSquint) {
     this.strings = getStringBundle('dlg-global');
-    var branchPI = NSQ.prefs.svc.getBranch('privacy.' + (is30() ? 'item.' : 'cpd.'));
-
+    var branchPI = NSQ.prefs.svc.getBranch('privacy.cpd.');
     this.init = function() {
         NSQ.storage.dialogs.global = this;
         this.dlg = $('nosquint-dialog-global');

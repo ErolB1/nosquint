@@ -21,26 +21,6 @@
         Application.storage.set('nosquint-global', this.storage);
     }
 
-    this.is30 = (function() {
-        let is30 = Application.version.substr(0, 4) == '3.0.';
-        return () => is30;
-    })();
-
-    this.is36 = (function() {
-        let is36 = Application.version.substr(0, 4) == '3.6.';
-        return () => is36;
-    })();
-
-    this.is3x = (function() {
-        let is3x = parseInt(Application.version.split('.')[0]) < 4;
-        return () => is3x;
-    })();
-
-    this.is40 = (function() {
-        let is40 = parseInt(Application.version.split('.')[0]) >= 4;
-        return () => is40;
-    })();
-
     this.$ = function(id, doc) {
         if (doc === undefined)
             doc = document;
